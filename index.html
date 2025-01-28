@@ -6,8 +6,8 @@
   <style>
     /* =========== GLOBAL RESET & BACKGROUND =========== */
     * {
-      margin: 0; 
-      padding: 0; 
+      margin: 0;
+      padding: 0;
       box-sizing: border-box;
     }
     html, body {
@@ -136,19 +136,18 @@
       box-shadow: 0 0 8px rgba(0,0,0,0.4);
       text-align: center;
       overflow: hidden; /* for the rolling animation */
-      height: 4rem;     /* enough space for two lines */
+      height: 5.5rem;   /* more room to show next line clearly */
     }
     .current-text-inner {
       position: relative;
       transition: transform 0.6s ease;
-      /* We'll shift it up to animate */
       height: 100%;
     }
     .text-line {
       font-weight: 500;
       width: 100%;
       display: block;
-      line-height: 2rem;
+      line-height: 2.3rem;
       text-shadow: 0 0 6px rgba(255,255,255,0.3);
       transition: color 0.6s ease;
     }
@@ -160,11 +159,10 @@
       color: #888;
       font-size: 1rem;
     }
-    /* During the roll animation, we'll shift upward by 2rem. */
+    /* shift upward by 2.3rem */
     .roll {
-      transform: translateY(-2rem);
+      transform: translateY(-2.3rem);
     }
-    /* After roll, the next line becomes bright */
     .roll-done .next-line {
       color: #ffecff;
     }
@@ -287,9 +285,9 @@
         <div class="shots-header">
           <h2>Shots</h2>
           <div class="copy-buttons">
-            <!-- 1) Paste Text (renamed, placed first) -->
+            <!-- Paste first -->
             <button id="pasteTextsBtn" class="copy-btn">Paste Text</button>
-            <!-- then the copy buttons -->
+            <!-- then copies -->
             <button id="copyColumnBtn" class="copy-btn" disabled>Copy as Column</button>
             <button id="copyRowBtn" class="copy-btn" disabled>Copy as Row</button>
             <button id="copyListBtn" class="copy-btn" disabled>Copy as List</button>
@@ -338,7 +336,7 @@
     const shotLineCurrent = document.getElementById('shotLineCurrent');
     const shotLineNext = document.getElementById('shotLineNext');
 
-    /* ====== HELPER: Format mm:ss ====== */
+    /* ====== HELPER: format mm:ss ====== */
     function formatTime(ms) {
       const totalSeconds = Math.floor(ms / 1000);
       const minutes = Math.floor(totalSeconds / 60);
@@ -386,7 +384,7 @@
       }
       updateTimerDisplay();
       renderShots();
-      updateShotTextLines(false); // refresh shot lines
+      updateShotTextLines(false);
     }
 
     /* ===== NEXT SHOT ===== */
@@ -477,13 +475,14 @@
         if (i === currentShotIndex) {
           li.classList.add('highlighted');
         }
-        let label = `Shot ${i+1}: `;
+
+        let label = `Shot ${i + 1}: `;
         if (shot.start !== undefined && shot.end !== undefined) {
           label += `${formatTime(shot.start)} - ${formatTime(shot.end)}`;
         } else if (shot.start === undefined && shot.end === undefined) {
           label += '(no time)';
         } else {
-          // partially set
+          // partial
           const st = shot.start !== undefined ? formatTime(shot.start) : '??:??';
           const en = shot.end !== undefined ? formatTime(shot.end) : '??:??';
           label += `${st} - ${en}`;
@@ -501,16 +500,14 @@
         shotsList.appendChild(li);
       });
 
-      // Auto-scroll so the highlighted shot has ~3 shots below if possible
+      // Auto-scroll so highlighted shot is visible with ~3 shots below
       if (currentShotIndex >= 0 && currentShotIndex < shots.length) {
         const item = shotsList.children[currentShotIndex];
         if (item) {
-          // Position so that item is near top, leaving space for ~3 items
           const itemOffset = item.offsetTop;
-          const itemHeight = item.offsetHeight;
           const containerHeight = shotsScroll.clientHeight;
-          // We want the shot to appear ~ 1/4 from top
-          const desiredTop = itemOffset - (containerHeight * 0.25);
+          // we want the shot to appear ~1/4 from top
+          const desiredTop = itemOffset - containerHeight * 0.25;
           shotsScroll.scrollTo({
             top: desiredTop,
             behavior: 'smooth'
@@ -521,39 +518,33 @@
 
     /* ===== CURRENT & NEXT SHOT TEXT LINES (ROLL ANIMATION) ===== */
     function updateShotTextLines(doRoll) {
-      // current shot text = shots[currentShotIndex]?.text 
-      // next shot text = shots[currentShotIndex+1]?.text
-      if (shots.length === 0) {
-        shotLineCurrent.textContent = '(No current)';
-        shotLineNext.textContent = '(No next)';
-        return;
-      }
       let idxCur = currentShotIndex < 0 ? 0 : currentShotIndex;
       if (idxCur >= shots.length) idxCur = shots.length - 1;
-      const idxNext = idxCur + 1;
+      // current
+      const txtCur = shots.length > 0 ? (shots[idxCur].text || '(No text)') : '(No current)';
+      // next
+      let txtNext = '(No next)';
+      if (shots.length > 0) {
+        const idxN = idxCur + 1;
+        if (idxN < shots.length) {
+          txtNext = shots[idxN].text || '(No text)';
+        }
+      }
 
-      const txtCur = shots[idxCur].text || '(No text)';
-      const txtNext = (idxNext < shots.length) ? (shots[idxNext].text || '(No text)') : '(No next)';
-
-      // Prepare the lines
       shotLineCurrent.textContent = txtCur;
       shotLineNext.textContent = txtNext;
 
-      // If doRoll, we do the transition
       if (doRoll) {
-        // Add class 'roll' to shift them up
         currentTextInner.classList.add('roll');
-        // After the animation, we remove 'roll' but add 'roll-done' to finalize color
         setTimeout(() => {
+          // finalize
           currentTextInner.classList.remove('roll');
           currentTextInner.classList.add('roll-done');
-          // next animation frame to remove roll-done so next time we can do it again
           requestAnimationFrame(() => {
             currentTextInner.classList.remove('roll-done');
           });
         }, 600);
       } else {
-        // no animation
         currentTextInner.classList.remove('roll');
       }
     }
@@ -601,9 +592,9 @@
       });
     }
     function copyAsList() {
-      const lines = shots.map((s,i) => {
-        const st = (s.start!==undefined)? formatTime(s.start) : '(no)';
-        const en = (s.end!==undefined)? formatTime(s.end) : '(no)';
+      const lines = shots.map((s, i) => {
+        const st = s.start !== undefined ? formatTime(s.start) : '(no)';
+        const en = s.end !== undefined ? formatTime(s.end) : '(no)';
         return `Shot ${i+1}: ${st} - ${en}`;
       });
       const text = lines.join('\n');
@@ -620,6 +611,8 @@
           alert('Clipboard is empty or blocked.');
           return;
         }
+
+        // parse by lines or tabs
         let lines = str.split('\n').map(l => l.trim()).filter(l => l !== '');
         let texts;
         if (lines.length > 1) {
@@ -635,23 +628,26 @@
           alert('Could not parse any lines from clipboard');
           return;
         }
+
+        // expand shots if needed
         if (shots.length < texts.length) {
           const needed = texts.length - shots.length;
-          for (let i=0; i<needed; i++)
-shots.push({ text: '', start: undefined, end: undefined });
+          for (let i=0; i<needed; i++) {
+            shots.push({ text: '', start: undefined, end: undefined });
           }
         }
-        // Fill the first N
+        // fill
         const fillCount = Math.min(shots.length, texts.length);
-        for (let i=0; i<fillCount; i++){
+        for (let i=0; i<fillCount; i++) {
           shots[i].text = texts[i];
         }
+
         renderShots();
         updateShotTextLines(false);
         alert(`Pasted ${texts.length} text items. Created or updated ${fillCount} shots.`);
       } catch(e) {
         console.error('Failed to read from clipboard', e);
-        alert('Failed to read from clipboard: '+e);
+        alert('Failed to read from clipboard: ' + e);
       }
     }
 
