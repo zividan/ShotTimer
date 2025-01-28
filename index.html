@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Shot Timer (No Motion)</title>
+  <title>Shot Timer</title>
   <!-- Tailwind CSS via CDN -->
   <link
     href="https://cdn.jsdelivr.net/npm/tailwindcss@3.3.2/dist/tailwind.min.css"
@@ -13,11 +13,10 @@
   <!-- ReactDOM (UMD Production Build) -->
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 </head>
-<body class="bg-black">
+<body>
   <div id="root"></div>
 
   <script>
-    // Import from UMD global variables
     const { createElement, useState, useRef, useEffect } = React;
     const { createRoot } = ReactDOM;
 
@@ -29,7 +28,7 @@
           disabled,
           onClick,
           className:
-            'rounded-md px-3 py-2 font-medium ' +
+            'rounded-full px-6 py-3 font-semibold transition-colors text-lg shadow-md ' +
             className +
             (disabled ? ' opacity-50 cursor-not-allowed' : ''),
         },
@@ -40,7 +39,7 @@
     function Card({ children, className = '' }) {
       return createElement(
         'div',
-        { className: 'rounded-md shadow-md ' + className },
+        { className: 'border border-gray-700 rounded-2xl shadow-2xl bg-opacity-40 backdrop-blur-md ' + className },
         children
       );
     }
@@ -66,7 +65,7 @@
       console.assert(formatTime(3600000) === '60:00', 'Expected 60:00 for 3600000 ms');
       console.log('testFormatTime passed all tests!');
     }
-    testFormatTime(); // runs once on load
+    testFormatTime();
 
     function StopwatchTimer() {
       const [elapsedTime, setElapsedTime] = useState(0);
@@ -74,10 +73,9 @@
       const [startTime, setStartTime] = useState(null);
       const [shots, setShots] = useState([]);
       const [lastShotTime, setLastShotTime] = useState(0);
-
       const timerRef = useRef(null);
 
-      // Similar to componentDidMount/update for the timer
+      // Timer effect
       useEffect(() => {
         if (isRunning) {
           timerRef.current = setInterval(() => {
@@ -90,9 +88,7 @@
           clearInterval(timerRef.current);
         }
         return () => {
-          if (timerRef.current) {
-            clearInterval(timerRef.current);
-          }
+          if (timerRef.current) clearInterval(timerRef.current);
         };
       }, [isRunning, startTime]);
 
@@ -106,7 +102,7 @@
       }
 
       function handleNextShot() {
-        setShots(prev => [...prev, { start: lastShotTime, end: elapsedTime }]);
+        setShots((prev) => [...prev, { start: lastShotTime, end: elapsedTime }]);
         setLastShotTime(elapsedTime);
       }
 
@@ -118,7 +114,7 @@
         setStartTime(null);
       }
 
-      // Dynamic color classes for the timer
+      // Timer color classes
       const timerColorClass = isRunning
         ? 'text-fuchsia-300 drop-shadow-[0_0_10px_rgba(245,0,255,0.6)]'
         : 'text-purple-300 drop-shadow-[0_0_10px_rgba(128,90,213,0.6)]';
@@ -137,7 +133,7 @@
       async function copyAsColumn() {
         try {
           const lines = shots.map(
-            shot => formatTime(shot.start) + ' - ' + formatTime(shot.end)
+            (shot) => formatTime(shot.start) + ' - ' + formatTime(shot.end)
           );
           const text = lines.join('\n');
           await copyTextSafely(text, 'Copied shot timings as column!');
@@ -149,9 +145,9 @@
       async function copyAsRow() {
         try {
           const lines = shots.map(
-            shot => formatTime(shot.start) + ' - ' + formatTime(shot.end)
+            (shot) => formatTime(shot.start) + ' - ' + formatTime(shot.end)
           );
-          // tab-separated so Google Sheets puts each shot in a separate column
+          // tab-separated so Google Sheets will put each shot in a separate column
           const text = lines.join('\t');
           await copyTextSafely(text, 'Copied shot timings as row!');
         } catch (err) {
@@ -159,7 +155,6 @@
         }
       }
 
-      // Build the UI with createElement
       return createElement(
         'div',
         {
@@ -173,15 +168,12 @@
             className:
               'text-5xl font-extrabold mb-8 text-center tracking-wide drop-shadow-[0_0_10px_rgba(255,255,255,0.8)]',
           },
-          'Shot Timer (No Motion)'
+          'Shot Timer'
         ),
         // Timer Display
         createElement(
           Card,
-          {
-            className:
-              'border border-gray-700 rounded-2xl shadow-2xl mb-6 bg-opacity-40 backdrop-blur-md',
-          },
+          null,
           createElement(
             CardContent,
             { className: 'flex flex-col items-center gap-8 py-12' },
@@ -189,8 +181,7 @@
               'div',
               {
                 className:
-                  'text-7xl font-mono transition-colors duration-300 ' +
-                  timerColorClass,
+                  'text-7xl font-mono transition-colors duration-300 ' + timerColorClass,
               },
               formatTime(elapsedTime)
             ),
@@ -204,8 +195,7 @@
                   className:
                     (isRunning
                       ? 'bg-red-500 hover:bg-red-600'
-                      : 'bg-green-500 hover:bg-green-600') +
-                    ' text-white font-semibold px-6 py-3 rounded-full shadow-md transition-colors text-lg',
+                      : 'bg-green-500 hover:bg-green-600') + ' text-white',
                 },
                 isRunning ? 'Pause' : 'Start'
               ),
@@ -217,8 +207,7 @@
                   className:
                     (isRunning
                       ? 'bg-blue-500 hover:bg-blue-600'
-                      : 'bg-gray-600 text-gray-300 cursor-not-allowed') +
-                    ' font-semibold px-6 py-3 rounded-full shadow-md transition-colors text-lg',
+                      : 'bg-gray-600 text-gray-300 cursor-not-allowed') + ' font-semibold text-white',
                 },
                 'Next Shot'
               ),
@@ -226,8 +215,7 @@
                 Button,
                 {
                   onClick: handleReset,
-                  className:
-                    'bg-gray-700 hover:bg-gray-600 text-white font-semibold px-6 py-3 rounded-full shadow-md transition-colors text-lg',
+                  className: 'bg-gray-700 hover:bg-gray-600 text-white',
                 },
                 'Reset'
               )
@@ -237,10 +225,7 @@
         // Shots List
         createElement(
           Card,
-          {
-            className:
-              'border border-gray-700 rounded-2xl shadow-2xl bg-opacity-40 backdrop-blur-md',
-          },
+          { className: 'mt-6' },
           createElement(
             CardContent,
             null,
@@ -254,38 +239,34 @@
                 'Shots'
               ),
               createElement(
-                Card,
-                { className: 'bg-black bg-opacity-40 py-3 px-6 rounded-xl' },
+                'div',
+                { className: 'bg-black bg-opacity-40 py-3 px-6 rounded-xl flex gap-2 justify-center' },
                 createElement(
-                  'div',
-                  { className: 'flex gap-2 justify-center' },
-                  createElement(
-                    Button,
-                    {
-                      onClick: copyAsColumn,
-                      className:
-                        'bg-purple-600 hover:bg-purple-700 text-white font-semibold px-4 py-2 rounded-full shadow-md transition-colors text-sm',
-                      disabled: shots.length === 0,
-                    },
-                    'Copy as Column'
-                  ),
-                  createElement(
-                    Button,
-                    {
-                      onClick: copyAsRow,
-                      className:
-                        'bg-purple-600 hover:bg-purple-700 text-white font-semibold px-4 py-2 rounded-full shadow-md transition-colors text-sm',
-                      disabled: shots.length === 0,
-                    },
-                    'Copy as Row'
-                  )
+                  Button,
+                  {
+                    onClick: copyAsColumn,
+                    className:
+                      'bg-purple-600 hover:bg-purple-700 text-white font-semibold px-4 py-2 rounded-full text-sm',
+                    disabled: shots.length === 0,
+                  },
+                  'Copy as Column'
+                ),
+                createElement(
+                  Button,
+                  {
+                    onClick: copyAsRow,
+                    className:
+                      'bg-purple-600 hover:bg-purple-700 text-white font-semibold px-4 py-2 rounded-full text-sm',
+                    disabled: shots.length === 0,
+                  },
+                  'Copy as Row'
                 )
               )
             ),
             shots.length === 0
               ? createElement(
                   'p',
-                  { className: 'text-gray-300' },
+                  { className: 'text-gray-300 text-center' },
                   'No shots recorded yet.'
                 )
               : createElement(
@@ -317,7 +298,6 @@
       );
     }
 
-    // Render in #root
     createRoot(document.getElementById('root')).render(createElement(StopwatchTimer));
   </script>
 </body>
