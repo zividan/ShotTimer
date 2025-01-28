@@ -115,7 +115,7 @@ button:disabled {
   top: 0; left: 0; right: 0; bottom: 0;
   display: flex;
   justify-content: center;
-  padding-top: 180px; /* enough space for the header */
+  padding-top: 180px;
   overflow: hidden;
 }
 .content-wrapper {
@@ -130,7 +130,7 @@ button:disabled {
   max-height: calc(100vh - 200px);
   overflow-y: auto;
   padding-right: 0.5rem;
-  padding-left: 0.5rem; /* so highlight outline is visible on the left */
+  padding-left: 0.5rem; /* so highlight is fully visible */
   scroll-behavior: smooth;
 }
 .shots-header {
@@ -152,7 +152,8 @@ button:disabled {
   justify-content: center;
 }
 
-/* Shots List: 3 sections per shot: number/time/text. Expand in height if text is big */
+/* Shots List: 3 sections per shot (number/time/text).
+   Make text bigger for readability. */
 .shots-list {
   list-style: none;
   display: flex;
@@ -170,6 +171,8 @@ button:disabled {
   gap: 0.8rem;
   padding: 0.6rem 1rem;
   font-weight: 600;
+  /* Larger text overall */
+  font-size: 1.1rem;
 }
 .shot-number,
 .shot-time,
@@ -179,10 +182,9 @@ button:disabled {
 }
 .shot-text {
   flex: 1 1 100%;
-  font-size: 0.9rem;
   font-weight: 500;
   color: #ffcfff;
-  white-space: pre-wrap; /* multiline text can break lines */
+  white-space: pre-wrap; 
 }
 .highlighted {
   outline: 2px solid #fff;
@@ -196,7 +198,7 @@ button:disabled {
   margin-bottom: 1rem;
 }
 
-/* Hidden copy area so it won't appear white */
+/* Hide the hidden copy area so it won't appear */
 #hiddenCopyArea {
   position: absolute;
   left: -9999px;
