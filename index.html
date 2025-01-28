@@ -12,8 +12,8 @@
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <!-- ReactDOM (UMD Production Build) -->
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <!-- Framer Motion (UMD Build) -->
-    <script src="https://unpkg.com/framer-motion/dist/framer-motion.umd.js"></script>
+    <!-- Framer Motion (UMD Build, pinned to version 10.12.0) -->
+    <script src="https://unpkg.com/framer-motion@10.12.0/dist/framer-motion.umd.js"></script>
   </head>
   <body class="bg-black">
     <div id="root"></div>
@@ -22,7 +22,8 @@
       // Import from UMD global variables
       const { createElement, useState, useRef, useEffect } = React;
       const { createRoot } = ReactDOM;
-      const { motion } = window['framer-motion'];
+      // IMPORTANT: Use .framerMotion, not ['framer-motion'].
+      const { motion } = window.framerMotion;
 
       // Minimal replacements for your custom Button, Card, CardContent
       function Button({ children, className = '', onClick, disabled }) {
@@ -60,7 +61,7 @@
         return String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0');
       }
 
-      // Test function for formatTime
+      // Basic test cases for formatTime
       function testFormatTime() {
         console.assert(formatTime(0) === '00:00', 'Expected 00:00 for 0 ms');
         console.assert(formatTime(59999) === '00:59', 'Expected 00:59 for 59999 ms');
@@ -142,7 +143,7 @@
             const lines = shots.map(
               shot => formatTime(shot.start) + ' - ' + formatTime(shot.end)
             );
-            const text = lines.join('\\n');
+            const text = lines.join('\n');
             await copyTextSafely(text, 'Copied shot timings as column!');
           } catch (err) {
             console.error('Failed to copy text: ', err);
@@ -155,7 +156,7 @@
               shot => formatTime(shot.start) + ' - ' + formatTime(shot.end)
             );
             // tab-separated so Google Sheets puts each shot in a separate column
-            const text = lines.join('\\t');
+            const text = lines.join('\t');
             await copyTextSafely(text, 'Copied shot timings as row!');
           } catch (err) {
             console.error('Failed to copy text: ', err);
