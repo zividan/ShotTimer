@@ -1,4 +1,4 @@
-/* ========= GLOBAL RESET & BACKGROUND ========= */
+/* ========== GLOBAL RESET & BACKGROUND ========== */
 * {
   margin: 0;
   padding: 0;
@@ -13,30 +13,25 @@ html, body {
   color: #fff;
   position: relative;
 }
-/* Pulsing glow effect behind everything */
+/* Softening the radial glow so it’s less visible at top-left */
 body::before {
   content: "";
   position: absolute;
   top: 50%; left: 50%;
-  width: 500px; height: 500px;
+  width: 300px; height: 300px; /* smaller circle */
   transform: translate(-50%, -50%);
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(255,0,255,0.3) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(255,0,255,0.2) 0%, transparent 70%);
   animation: pulseGlow 3s alternate infinite ease-in-out;
   z-index: 0;
+  opacity: 0.25; /* lighten the effect */
 }
 @keyframes pulseGlow {
-  from {
-    transform: translate(-50%, -50%) scale(1);
-    opacity: 0.4;
-  }
-  to {
-    transform: translate(-50%, -50%) scale(1.3);
-    opacity: 0.6;
-  }
+  from { transform: translate(-50%, -50%) scale(1); opacity: 0.25; }
+  to   { transform: translate(-50%, -50%) scale(1.2); opacity: 0.5; }
 }
 
-/* ========= FIXED HEADER ========= */
+/* ========== FIXED HEADER ========== */
 .header {
   position: fixed;
   top: 0; left: 0; right: 0;
@@ -65,13 +60,13 @@ body::before {
   transition: color 0.3s ease;
 }
 .timer.running {
-  color: #ff77ff; /* fuchsia */
+  color: #ff77ff;
 }
 .timer.paused {
-  color: #b580ff; /* purple */
+  color: #b580ff;
 }
 
-/* ========= BUTTONS ========= */
+/* ========== BUTTONS ========== */
 .buttons {
   display: flex;
   gap: 1rem;
@@ -114,10 +109,10 @@ button:disabled {
   background: #9c27b0; /* purple */
 }
 
-/* ========= CURRENT SHOT TEXT BOX ========= */
+/* ========== CURRENT SHOT TEXT BOX ========== */
 .current-text-box {
   position: fixed;
-  top: 200px; /* keep it lower so it won't overlap the buttons */
+  top: 200px;
   left: 50%;
   transform: translateX(-50%);
   width: 100%;
@@ -130,7 +125,7 @@ button:disabled {
   box-shadow: 0 0 8px rgba(0,0,0,0.4);
   text-align: center;
   overflow: hidden; /* for the rolling animation */
-  height: 5.5rem; /* enough room to show next line clearly */
+  height: 6rem; /* slightly bigger to see next line better */
 }
 .current-text-inner {
   position: relative;
@@ -141,7 +136,7 @@ button:disabled {
   font-weight: 500;
   width: 100%;
   display: block;
-  line-height: 2.3rem;
+  line-height: 2.5rem; /* bigger line height to avoid big jump */
   text-shadow: 0 0 6px rgba(255,255,255,0.3);
   transition: color 0.6s ease;
 }
@@ -155,19 +150,19 @@ button:disabled {
 }
 /* shift upward for rolling animation */
 .roll {
-  transform: translateY(-2.3rem);
+  transform: translateY(-2.5rem);
 }
 .roll-done .next-line {
   color: #ffecff;
 }
 
-/* ========= MAIN CONTENT ========= */
+/* ========== MAIN CONTENT ========== */
 .main-content {
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
   display: flex;
   justify-content: center;
-  padding-top: 280px; /* space for header + current text box */
+  padding-top: 280px;
   overflow: hidden;
 }
 .content-wrapper {
@@ -182,6 +177,7 @@ button:disabled {
   max-height: calc(100vh - 300px);
   overflow-y: auto;
   padding-right: 0.5rem;
+  padding-left: 0.5rem; /* extra horizontal padding so highlight is not cut off */
   scroll-behavior: smooth; /* for smoother auto-scrolling */
 }
 .shots-header {
@@ -214,18 +210,15 @@ button:disabled {
 .shot-item {
   background: rgba(255,255,255,0.15);
   border-radius: 8px;
-  padding: 0.6rem 1rem;
   box-shadow: 0 0 4px rgba(0,0,0,0.3);
   display: flex;
-  justify-content: space-between;
   align-items: center;
   font-weight: 600;
-}
-.shot-text {
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: #ffcfff;
-  opacity: 0.9;
+  padding: 0.6rem 1rem;
+  /* One-liner with a separator */
+  white-space: nowrap; /* keep it on one line */
+  overflow: hidden;    /* if it’s too long, it’ll wrap or cut off? We could do text-overflow if you want ellipsis. */
+  gap: 1rem;
 }
 .highlighted {
   outline: 2px solid #fff;
@@ -238,3 +231,11 @@ button:disabled {
   font-weight: 500;
   margin-bottom: 1rem;
 }
+
+/* Optional: If text is super long, we can add ellipses
+.shot-item div, .shot-item span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+*/
+
