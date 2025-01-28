@@ -50,7 +50,7 @@ function tick() {
   }
 }
 
-/* ======= START/PAUSE ======= */
+/* ===== START/PAUSE ===== */
 function startTimer() {
   if (!isRunning) {
     // Start or resume
@@ -82,7 +82,7 @@ function startTimer() {
   updateShotTextLines(false);
 }
 
-/* ======= NEXT SHOT ======= */
+/* ===== NEXT SHOT ===== */
 function nextShot() {
   if (currentShotIndex < 0 || currentShotIndex >= shots.length) {
     alert('No available shot to set. Please paste texts or add shots first.');
@@ -106,11 +106,11 @@ function nextShot() {
     }
   }
   renderShots();
-  // Perform the rolling text animation
-  updateShotTextLines(true);
+  // Animate the text lines
+  rollShotText();
 }
 
-/* ======= RESET TIMES ONLY ======= */
+/* ===== RESET TIMES ===== */
 function resetTimes() {
   if (timerInterval) clearInterval(timerInterval);
   elapsedTime = 0;
@@ -131,7 +131,7 @@ function resetTimes() {
   updateShotTextLines(false);
 }
 
-/* ======= RESET ALL ======= */
+/* ===== RESET ALL ===== */
 function resetAll() {
   if (timerInterval) clearInterval(timerInterval);
   elapsedTime = 0;
@@ -149,7 +149,7 @@ function resetAll() {
   updateShotTextLines(false);
 }
 
-/* ======= RENDER SHOTS ======= */
+/* ===== RENDER SHOTS ===== */
 function renderShots() {
   shotsList.innerHTML = '';
   if (shots.length === 0) {
@@ -165,35 +165,47 @@ function renderShots() {
   copyListBtn.disabled = false;
 
   shots.forEach((shot, i) => {
+    // We'll make a .shot-item with 3 sections:
+    // .shot-number, .shot-time, .shot-text
     const li = document.createElement('li');
     li.className = 'shot-item';
+
     if (i === currentShotIndex) {
       li.classList.add('highlighted');
     }
 
-    // Example format: Shot 1: 00:00 - 00:02 | Some text
-    // If times are undefined, omit them entirely
+    // Shot number
+    const divNumber = document.createElement('div');
+    divNumber.className = 'shot-number';
+    divNumber.textContent = `Shot ${i+1}`;
+
+    // Time
+    const divTime = document.createElement('div');
+    divTime.className = 'shot-time';
+    // If start/end set, format them. If partially or not at all set, omit
     let timeStr = '';
     if (shot.start !== undefined && shot.end !== undefined) {
       timeStr = `${formatTime(shot.start)} - ${formatTime(shot.end)}`;
-    } else if (shot.start !== undefined && shot.end === undefined) {
+    } else if (shot.start !== undefined) {
       timeStr = formatTime(shot.start);
-    } 
-    // else fully undefined => blank
+    } else {
+      timeStr = ''; // blank if none
+    }
+    divTime.textContent = timeStr;
 
-    const shotNumber   = `Shot ${i + 1}`;
-    const shotTimes    = timeStr ? `: ${timeStr}` : '';
-    const labelContent = `${shotNumber}${shotTimes}`;
-    const textContent  = shot.text || '';
+    // Text
+    const divText = document.createElement('div');
+    divText.className = 'shot-text';
+    divText.textContent = shot.text || '';
 
-    // Single line with a '|'
-    const line = `${labelContent}${textContent ? ' | ' + textContent : ''}`;
+    li.appendChild(divNumber);
+    li.appendChild(divTime);
+    li.appendChild(divText);
 
-    li.textContent = line;
     shotsList.appendChild(li);
   });
 
-  // Auto-scroll so highlighted shot is visible with ~3 shots below
+  // Auto-scroll to keep highlight visible
   if (currentShotIndex >= 0 && currentShotIndex < shots.length) {
     const item = shotsList.children[currentShotIndex];
     if (item) {
@@ -208,17 +220,13 @@ function renderShots() {
   }
 }
 
-/* ======= CURRENT & NEXT SHOT TEXT LINES (ROLL ANIMATION) ======= */
+/* ===== CURRENT & NEXT SHOT TEXT LINES (CAROUSEL) ===== */
 function updateShotTextLines(doRoll) {
   let idxCur = currentShotIndex;
-  // If we haven't started => currentShotIndex is -1 => no current, next is the first shot
+  // If not started => show first shot text in lineNext, none in lineCurrent
   if (idxCur < 0) {
     shotLineCurrent.textContent = '';
-    if (shots.length > 0) {
-      shotLineNext.textContent = shots[0].text || '';
-    } else {
-      shotLineNext.textContent = '';
-    }
+    shotLineNext.textContent = shots.length ? (shots[0].text || '') : '';
   } else {
     if (idxCur >= shots.length) idxCur = shots.length - 1;
     shotLineCurrent.textContent = shots[idxCur].text || '';
@@ -227,82 +235,92 @@ function updateShotTextLines(doRoll) {
   }
 
   if (doRoll) {
-    currentTextInner.classList.add('roll');
-    setTimeout(() => {
-      currentTextInner.classList.remove('roll');
-      currentTextInner.classList.add('roll-done');
-      requestAnimationFrame(() => {
-        currentTextInner.classList.remove('roll-done');
-      });
-    }, 600);
+    rollShotText();
   } else {
-    currentTextInner.classList.remove('roll');
+    currentTextInner.classList.remove('roll', 'roll-done');
   }
 }
 
-/* ======= COPY FUNCTIONS ======= */
+function rollShotText() {
+  // 1) add .roll, after 600ms remove it but add .roll-done
+  currentTextInner.classList.remove('roll-done');
+  currentTextInner.classList.add('roll');
+  setTimeout(() => {
+    currentTextInner.classList.remove('roll');
+    currentTextInner.classList.add('roll-done');
+    // remove roll-done after next frame if you want subsequent rolls
+    requestAnimationFrame(() => {
+      currentTextInner.classList.remove('roll-done');
+    });
+  }, 600);
+}
+
+/* ===== COPY FUNCTIONS ===== */
 async function copyText(text) {
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    try {
-      await navigator.clipboard.writeText(text);
-      return true;
-    } catch (e) {
-      console.warn('Clipboard API failed:', e);
-    }
-  }
+  // Hide any leftover hidden area
+  hiddenCopyArea.style.display = 'block';
   hiddenCopyArea.value = text;
   hiddenCopyArea.select();
   hiddenCopyArea.setSelectionRange(0, text.length);
-  return document.execCommand('copy');
+
+  let ok = false;
+  try {
+    ok = document.execCommand('copy');
+  } catch(e) {
+    console.warn('Fallback copy failed:', e);
+  }
+  hiddenCopyArea.style.display = 'none';
+
+  // Attempt the modern API second, if you prefer the other way around, that's also possible
+  if (!ok && navigator.clipboard && navigator.clipboard.writeText) {
+    try {
+      await navigator.clipboard.writeText(text);
+      ok = true;
+    } catch(e) {
+      console.warn('Clipboard API failed:', e);
+    }
+  }
+  return ok;
 }
 
 function copyAsColumn() {
   const lines = shots.map(s => {
     if (s.start !== undefined && s.end !== undefined) {
       return `${formatTime(s.start)} - ${formatTime(s.end)}`;
-    }
-    if (s.start !== undefined) {
+    } else if (s.start !== undefined) {
       return formatTime(s.start);
     }
     return '';
   });
   const text = lines.join('\n');
-  copyText(text).then(ok => {
-    alert(ok ? 'Copied as column!' : 'Copy failed.');
-  });
+  copyText(text).then(ok => alert(ok ? 'Copied as column!' : 'Copy failed.'));
 }
 function copyAsRow() {
   const lines = shots.map(s => {
     if (s.start !== undefined && s.end !== undefined) {
       return `${formatTime(s.start)} - ${formatTime(s.end)}`;
-    }
-    if (s.start !== undefined) {
+    } else if (s.start !== undefined) {
       return formatTime(s.start);
     }
     return '';
   });
   const text = lines.join('\t');
-  copyText(text).then(ok => {
-    alert(ok ? 'Copied as row!' : 'Copy failed.');
-  });
+  copyText(text).then(ok => alert(ok ? 'Copied as row!' : 'Copy failed.'));
 }
 function copyAsList() {
   const lines = shots.map((s, i) => {
-    let timeStr = '';
     if (s.start !== undefined && s.end !== undefined) {
-      timeStr = `${formatTime(s.start)} - ${formatTime(s.end)}`;
+      return `Shot ${i+1}: ${formatTime(s.start)} - ${formatTime(s.end)}`;
     } else if (s.start !== undefined) {
-      timeStr = formatTime(s.start);
+      return `Shot ${i+1}: ${formatTime(s.start)}`;
     }
-    return `Shot ${i+1}${timeStr ? ': ' + timeStr : ''}`;
+    return `Shot ${i+1}:`;
   });
   const text = lines.join('\n');
-  copyText(text).then(ok => {
-    alert(ok ? 'Copied as list!' : 'Copy failed.');
-  });
+  copyText(text).then(ok => alert(ok ? 'Copied as list!' : 'Copy failed.'));
 }
 
-/* ======= PASTE TEXTS ======= */
+/* ===== PASTE TEXTS ===== */
 async function pasteTexts() {
   try {
     const str = await navigator.clipboard.readText();
@@ -311,14 +329,12 @@ async function pasteTexts() {
       return;
     }
 
-    // parse by lines or tabs
     const lines = str.split('\n').map(l => l.trim()).filter(l => l !== '');
     let texts;
     if (lines.length > 1) {
-      // multiple lines => column
       texts = lines;
     } else {
-      // single line => row (tab separated)
+      // single line => try tab
       const singleLine = lines.length === 1 ? lines[0] : '';
       const items = singleLine.split('\t').map(i => i.trim()).filter(i => i !== '');
       texts = items.length ? items : [];
@@ -350,7 +366,7 @@ async function pasteTexts() {
   }
 }
 
-/* ======= EVENT HANDLERS ======= */
+/* ===== EVENT HANDLERS ===== */
 startPauseBtn.addEventListener('click', startTimer);
 nextShotBtn.addEventListener('click', nextShot);
 
@@ -366,6 +382,6 @@ copyListBtn.addEventListener('click', copyAsList);
 updateTimerDisplay();
 renderShots();
 
-// By default, no “current shot,” so show first shot’s text in the “next line”
+// No “current shot,” so we show next line if there's a first shot
 shotLineCurrent.textContent = '';
 shotLineNext.textContent = shots.length ? (shots[0].text || '') : '';
