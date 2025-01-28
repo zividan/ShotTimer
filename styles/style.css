@@ -1,0 +1,240 @@
+/* ========= GLOBAL RESET & BACKGROUND ========= */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: sans-serif;
+  background: linear-gradient(135deg, #020202, #1a1a1a);
+  color: #fff;
+  position: relative;
+}
+/* Pulsing glow effect behind everything */
+body::before {
+  content: "";
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 500px; height: 500px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,0,255,0.3) 0%, transparent 70%);
+  animation: pulseGlow 3s alternate infinite ease-in-out;
+  z-index: 0;
+}
+@keyframes pulseGlow {
+  from {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.4;
+  }
+  to {
+    transform: translate(-50%, -50%) scale(1.3);
+    opacity: 0.6;
+  }
+}
+
+/* ========= FIXED HEADER ========= */
+.header {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 10;
+  background: rgba(0,0,0,0.4);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 0 15px rgba(0,0,0,0.5);
+  padding: 1rem;
+}
+.header-inner {
+  max-width: 700px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+.header h1 {
+  font-size: 2.2rem;
+  font-weight: 800;
+  text-shadow: 0 0 8px rgba(255,255,255,0.5);
+}
+.timer {
+  font-size: 3rem;
+  text-shadow: 0 0 10px rgba(255,255,255,0.6);
+  transition: color 0.3s ease;
+}
+.timer.running {
+  color: #ff77ff; /* fuchsia */
+}
+.timer.paused {
+  color: #b580ff; /* purple */
+}
+
+/* ========= BUTTONS ========= */
+.buttons {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+button {
+  border: none;
+  border-radius: 9999px;
+  padding: 0.7rem 1.2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: #fff;
+  transition: 0.3s ease;
+}
+button:hover:not(:disabled) {
+  opacity: 0.85;
+}
+button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.start {
+  background: #00c851; /* green */
+}
+.pause {
+  background: #ff4444; /* red */
+}
+.next {
+  background: #33b5e5; /* blue */
+}
+.reset-times {
+  background: #666;
+}
+.reset-all {
+  background: #999;
+}
+.copy-btn {
+  background: #9c27b0; /* purple */
+}
+
+/* ========= CURRENT SHOT TEXT BOX ========= */
+.current-text-box {
+  position: fixed;
+  top: 200px; /* keep it lower so it won't overlap the buttons */
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 700px;
+  z-index: 9;
+  padding: 0.8rem 1rem;
+  background: rgba(0,0,0,0.3);
+  backdrop-filter: blur(5px);
+  border-radius: 1rem;
+  box-shadow: 0 0 8px rgba(0,0,0,0.4);
+  text-align: center;
+  overflow: hidden; /* for the rolling animation */
+  height: 5.5rem; /* enough room to show next line clearly */
+}
+.current-text-inner {
+  position: relative;
+  transition: transform 0.6s ease;
+  height: 100%;
+}
+.text-line {
+  font-weight: 500;
+  width: 100%;
+  display: block;
+  line-height: 2.3rem;
+  text-shadow: 0 0 6px rgba(255,255,255,0.3);
+  transition: color 0.6s ease;
+}
+.current-line {
+  color: #ffecff;
+  font-size: 1.1rem;
+}
+.next-line {
+  color: #888;
+  font-size: 1rem;
+}
+/* shift upward for rolling animation */
+.roll {
+  transform: translateY(-2.3rem);
+}
+.roll-done .next-line {
+  color: #ffecff;
+}
+
+/* ========= MAIN CONTENT ========= */
+.main-content {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  display: flex;
+  justify-content: center;
+  padding-top: 280px; /* space for header + current text box */
+  overflow: hidden;
+}
+.content-wrapper {
+  width: 100%;
+  max-width: 700px;
+  margin: 0 auto;
+  position: relative;
+  padding: 0 1rem 1rem;
+}
+.shots-scrollable {
+  margin-top: 1rem;
+  max-height: calc(100vh - 300px);
+  overflow-y: auto;
+  padding-right: 0.5rem;
+  scroll-behavior: smooth; /* for smoother auto-scrolling */
+}
+.shots-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+.shots-header h2 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  text-shadow: 0 0 6px rgba(255,255,255,0.4);
+}
+.copy-buttons {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* Shots List */
+.shots-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+.shot-item {
+  background: rgba(255,255,255,0.15);
+  border-radius: 8px;
+  padding: 0.6rem 1rem;
+  box-shadow: 0 0 4px rgba(0,0,0,0.3);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 600;
+}
+.shot-text {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #ffcfff;
+  opacity: 0.9;
+}
+.highlighted {
+  outline: 2px solid #fff;
+  box-shadow: 0 0 8px rgba(255,255,255,0.7);
+}
+
+.no-shots {
+  text-align: center;
+  color: #ccc;
+  font-weight: 500;
+  margin-bottom: 1rem;
+}
