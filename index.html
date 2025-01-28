@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Idan's Shot Timer</title>
+    <!-- Link to external CSS -->
+    <link rel="stylesheet" href="styles/style.css" />
+  </head>
+  <body>
+    <!-- Fixed header at the top -->
+    <div class="header">
+      <div class="header-inner">
+        <h1>Idan's Shot Timer</h1>
+        <div id="timer" class="timer paused">00:00</div>
+
+        <!-- Main Buttons -->
+        <div class="buttons">
+          <button id="startPauseBtn" class="start">Start</button>
+          <button id="nextShotBtn" class="next" disabled>Next Shot</button>
+          <button id="resetTimesBtn" class="reset-times">Reset Times</button>
+          <button id="resetAllBtn" class="reset-all">Reset All</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Current shot text box -->
+    <div class="current-text-box">
+      <div id="currentTextInner" class="current-text-inner">
+        <span id="shotLineCurrent" class="text-line current-line"></span>
+        <span id="shotLineNext" class="text-line next-line"></span>
+      </div>
+    </div>
+
+    <!-- Shots area -->
+    <div class="main-content">
+      <div class="content-wrapper">
+        <div class="shots-scrollable" id="shotsScroll">
+          <div class="shots-header">
+            <h2>Shots</h2>
+            <div class="copy-buttons">
+              <!-- Paste text first -->
+              <button id="pasteTextsBtn" class="copy-btn">Paste Text</button>
+              <!-- Then copy buttons -->
+              <button id="copyColumnBtn" class="copy-btn" disabled>Copy as Column</button>
+              <button id="copyRowBtn" class="copy-btn" disabled>Copy as Row</button>
+              <button id="copyListBtn" class="copy-btn" disabled>Copy as List</button>
+            </div>
+          </div>
+
+          <ul id="shotsList" class="shots-list"></ul>
+          <p id="noShotsMsg" class="no-shots" style="display: none;">No shots recorded yet.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hidden fallback for copy/paste -->
+    <textarea id="hiddenCopyArea"></textarea>
+
+    <!-- Main logic -->
+    <script src="script/main.js"></script>
+  </body>
+</html>
