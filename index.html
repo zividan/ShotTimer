@@ -76,12 +76,13 @@
     .timer.paused {
       color: #b580ff; /* purple */
     }
+
     .buttons {
       display: flex;
       gap: 1rem;
+      flex-wrap: wrap;
+      justify-content: center;
     }
-
-    /* =========== BUTTONS =========== */
     button {
       border: none;
       border-radius: 9999px;
@@ -108,8 +109,42 @@
     .next {
       background: #33b5e5; /* blue */
     }
-    .reset {
-      background: #777;
+    .reset-times {
+      background: #666;
+    }
+    .reset-all {
+      background: #999;
+    }
+    .copy-btn {
+      background: #9c27b0; /* purple */
+    }
+
+    /* =========== CURRENT SHOT TEXT BOX =========== */
+    .current-text-box {
+      position: fixed;
+      top: 140px; /* below timer/buttons */
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 700px;
+      z-index: 9;
+      padding: 0.8rem 1rem;
+      background: rgba(0,0,0,0.3);
+      backdrop-filter: blur(5px);
+      border-radius: 1rem;
+      box-shadow: 0 0 8px rgba(0,0,0,0.4);
+      text-align: center;
+    }
+    .current-text-box h2 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      text-shadow: 0 0 6px rgba(255,255,255,0.3);
+    }
+    .current-text-content {
+      min-height: 1.4rem;
+      font-weight: 500;
+      color: #ffecff;
     }
 
     /* =========== MAIN CONTENT =========== */
@@ -118,7 +153,7 @@
       top: 0; left: 0; right: 0; bottom: 0;
       display: flex;
       justify-content: center;
-      padding-top: 200px; /* space for header */
+      padding-top: 220px; /* space for header + current text box */
       overflow: hidden;
     }
     .content-wrapper {
@@ -130,7 +165,7 @@
     }
     .shots-scrollable {
       margin-top: 1rem;
-      max-height: calc(100vh - 220px);
+      max-height: calc(100vh - 240px);
       overflow-y: auto;
       padding-right: 0.5rem;
     }
@@ -149,10 +184,10 @@
     .copy-buttons {
       display: flex;
       gap: 0.5rem;
+      flex-wrap: wrap;
+      justify-content: center;
     }
-    .copy-btn {
-      background: #9c27b0; /* purple */
-    }
+
     .shots-list {
       list-style: none;
       display: flex;
@@ -164,72 +199,21 @@
       background: rgba(255,255,255,0.15);
       border-radius: 8px;
       padding: 0.6rem 1rem;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
       box-shadow: 0 0 4px rgba(0,0,0,0.3);
-    }
-    .shot-view {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-    .shot-view .times {
       font-weight: 600;
     }
-    .shot-view .text {
-      color: #ffcfff;
-      font-weight: 500;
+    .shot-item .shot-text {
       font-size: 0.9rem;
+      font-weight: 500;
+      color: #ffcfff;
       opacity: 0.9;
     }
-    .shot-view button.edit-btn {
-      background: #444;
-      padding: 0.3rem 0.6rem;
-      font-size: 0.8rem;
-      border-radius: 6px;
-    }
-
-    /* Editing form inside the shot */
-    .shot-edit {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-      align-items: center;
-    }
-    .shot-edit label {
-      display: flex;
-      flex-direction: column;
-      font-size: 0.8rem;
-      font-weight: 600;
-    }
-    .shot-edit input {
-      width: 80px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      padding: 0.3rem;
-      font-size: 0.8rem;
-      margin-top: 0.2rem;
-      color: #000;
-    }
-    .shot-edit .text-input {
-      width: 140px;
-    }
-    .shot-edit button.save-btn {
-      background: #28a745;
-      padding: 0.4rem 0.7rem;
-      font-size: 0.8rem;
-      border-radius: 6px;
-      font-weight: 600;
-    }
-    .shot-edit button.cancel-btn {
-      background: #999;
-      padding: 0.4rem 0.7rem;
-      font-size: 0.8rem;
-      border-radius: 6px;
-      font-weight: 600;
+    .highlighted {
+      outline: 2px solid #fff;
+      box-shadow: 0 0 8px rgba(255,255,255,0.7);
     }
 
     .no-shots {
@@ -253,18 +237,26 @@
   <div class="header">
     <div class="header-inner">
       <h1>Idan's Shot Timer</h1>
-      <!-- Timer -->
       <div id="timer" class="timer paused">00:00</div>
+
       <!-- Main Buttons -->
       <div class="buttons">
         <button id="startPauseBtn" class="start">Start</button>
         <button id="nextShotBtn" class="next" disabled>Next Shot</button>
-        <button id="resetBtn" class="reset">Reset</button>
+        <!-- Two reset buttons -->
+        <button id="resetTimesBtn" class="reset-times">Reset Times</button>
+        <button id="resetAllBtn" class="reset-all">Reset All</button>
       </div>
     </div>
   </div>
 
-  <!-- Main content with scrollable shots -->
+  <!-- Current shot text box -->
+  <div class="current-text-box">
+    <h2>Current Shot Text</h2>
+    <div id="currentShotText" class="current-text-content">No shots yet</div>
+  </div>
+
+  <!-- Shots area -->
   <div class="main-content">
     <div class="content-wrapper">
       <div class="shots-scrollable">
@@ -277,32 +269,38 @@
             <button id="pasteTextsBtn" class="copy-btn">Paste Texts</button>
           </div>
         </div>
+
         <ul id="shotsList" class="shots-list"></ul>
         <p id="noShotsMsg" class="no-shots" style="display: none;">No shots recorded yet.</p>
       </div>
     </div>
   </div>
 
-  <!-- Hidden fallback for copying or parsing -->
+  <!-- Hidden fallback for copy/paste -->
   <textarea id="hiddenCopyArea"></textarea>
 
   <script>
-    /* ================= TIMER & SHOTS DATA ================= */
+    /* ================= TIMER & SHOTS STATE ================= */
     let elapsedTime = 0;
     let isRunning = false;
     let startTime = null;
     let timerInterval = null;
 
-    const shots = []; 
-    let lastShotTime = 0; 
+    // Shots: each shot = { text: string, time: number }
+    // 'time' is when user hits Next Shot
+    const shots = [];
+    // which shot is currently highlighted
+    let currentShotIndex = -1;
 
-    // DOM elements
+    // DOM references
     const timerEl = document.getElementById('timer');
     const startPauseBtn = document.getElementById('startPauseBtn');
     const nextShotBtn = document.getElementById('nextShotBtn');
-    const resetBtn = document.getElementById('resetBtn');
+    const resetTimesBtn = document.getElementById('resetTimesBtn');
+    const resetAllBtn = document.getElementById('resetAllBtn');
     const shotsList = document.getElementById('shotsList');
     const noShotsMsg = document.getElementById('noShotsMsg');
+    const currentShotTextEl = document.getElementById('currentShotText');
 
     const copyColumnBtn = document.getElementById('copyColumnBtn');
     const copyRowBtn = document.getElementById('copyRowBtn');
@@ -310,7 +308,7 @@
     const pasteTextsBtn = document.getElementById('pasteTextsBtn');
     const hiddenCopyArea = document.getElementById('hiddenCopyArea');
 
-    /* ====== Helper: format time as MM:SS ====== */
+    /* ===== HELPER: Format mm:ss ===== */
     function formatTime(ms) {
       const totalSeconds = Math.floor(ms / 1000);
       const minutes = Math.floor(totalSeconds / 60);
@@ -318,7 +316,6 @@
       return String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0');
     }
 
-    /* ====== Timer Display ====== */
     function updateTimerDisplay() {
       timerEl.textContent = formatTime(elapsedTime);
       timerEl.className = 'timer ' + (isRunning ? 'running' : 'paused');
@@ -331,6 +328,7 @@
       }
     }
 
+    /* ===== START/PAUSE ===== */
     function startTimer() {
       if (!isRunning) {
         // Start or resume
@@ -339,6 +337,10 @@
         startPauseBtn.textContent = 'Pause';
         startPauseBtn.className = 'pause';
         nextShotBtn.disabled = false;
+        // If we have shots but no highlight yet, highlight first shot
+        if (shots.length > 0 && currentShotIndex < 0) {
+          currentShotIndex = 0;
+        }
         timerInterval = setInterval(tick, 100);
       } else {
         // Pause
@@ -350,38 +352,72 @@
         timerInterval = null;
       }
       updateTimerDisplay();
-    }
-
-    /* ====== Shots ====== */
-    function nextShot() {
-      // Let "start" be the time we press Next Shot
-      // (If you'd prefer storing a range from lastShotTime -> elapsedTime, adapt as needed.)
-      shots.push({
-        start: elapsedTime,
-        end: 0,
-        text: '',
-        editing: false  // track if we are editing
-      });
       renderShots();
+      updateCurrentShotText();
     }
 
-    function resetTimer() {
+    /* ===== NEXT SHOT ===== */
+    function nextShot() {
+      if (currentShotIndex < 0 || currentShotIndex >= shots.length) {
+        alert('No available shot to set. Please paste texts or add shots first.');
+        return;
+      }
+      // Set the time on the currently highlighted shot
+      shots[currentShotIndex].time = elapsedTime;
+
+      // Move highlight to next shot if any
+      currentShotIndex++;
+      if (currentShotIndex >= shots.length) {
+        alert('No more shots to highlight—you’ve recorded them all!');
+        // keep the highlight out of range
+      }
+      renderShots();
+      updateCurrentShotText();
+    }
+
+    /* ===== RESET TIMES ONLY ===== */
+    function resetTimes() {
+      // Stop the timer
       if (timerInterval) clearInterval(timerInterval);
       elapsedTime = 0;
       isRunning = false;
       startTime = null;
       timerInterval = null;
-      shots.length = 0;
+      // Clear times but keep texts
+      shots.forEach(s => { s.time = 0; });
+      // Re-highlight the first shot if any
+      currentShotIndex = shots.length > 0 ? 0 : -1;
 
+      // Update UI
       startPauseBtn.textContent = 'Start';
       startPauseBtn.className = 'start';
       nextShotBtn.disabled = true;
 
       updateTimerDisplay();
       renderShots();
+      updateCurrentShotText();
     }
 
-    /* ====== Render Shots ====== */
+    /* ===== RESET ALL ===== */
+    function resetAll() {
+      if (timerInterval) clearInterval(timerInterval);
+      // Clear everything
+      elapsedTime = 0;
+      isRunning = false;
+      startTime = null;
+      timerInterval = null;
+      shots.length = 0;
+      currentShotIndex = -1;
+
+      startPauseBtn.textContent = 'Start';
+      startPauseBtn.className = 'start';
+      nextShotBtn.disabled = true;
+      updateTimerDisplay();
+      renderShots();
+      updateCurrentShotText();
+    }
+
+    /* ===== RENDER SHOTS ===== */
     function renderShots() {
       shotsList.innerHTML = '';
       if (shots.length === 0) {
@@ -389,114 +425,63 @@
         copyColumnBtn.disabled = true;
         copyRowBtn.disabled = true;
         copyListBtn.disabled = true;
-      } else {
-        noShotsMsg.style.display = 'none';
-        copyColumnBtn.disabled = false;
-        copyRowBtn.disabled = false;
-        copyListBtn.disabled = false;
-
-        shots.forEach((shot, index) => {
-          const li = document.createElement('li');
-          li.className = 'shot-item';
-
-          if (!shot.editing) {
-            // VIEW MODE
-            const viewDiv = document.createElement('div');
-            viewDiv.className = 'shot-view';
-            
-            const timesSpan = document.createElement('span');
-            timesSpan.className = 'times';
-            timesSpan.textContent = `Shot ${index + 1}: ${formatTime(shot.start)} - ${formatTime(shot.end)}`;
-            
-            const textSpan = document.createElement('span');
-            textSpan.className = 'text';
-            textSpan.textContent = shot.text ? shot.text : '(No text)';
-            
-            // Edit button
-            const editBtn = document.createElement('button');
-            editBtn.textContent = 'Edit';
-            editBtn.className = 'edit-btn';
-            editBtn.addEventListener('click', () => {
-              shot.editing = true;
-              renderShots();
-            });
-
-            viewDiv.appendChild(timesSpan);
-            viewDiv.appendChild(textSpan);
-            viewDiv.appendChild(editBtn);
-            li.appendChild(viewDiv);
-
-          } else {
-            // EDIT MODE
-            const editForm = document.createElement('div');
-            editForm.className = 'shot-edit';
-
-            // Start time
-            const labelStart = document.createElement('label');
-            labelStart.innerHTML = 'Start Time';
-            const inputStart = document.createElement('input');
-            inputStart.type = 'number';
-            inputStart.value = shot.start.toString();
-            labelStart.appendChild(inputStart);
-
-            // End time
-            const labelEnd = document.createElement('label');
-            labelEnd.innerHTML = 'End Time';
-            const inputEnd = document.createElement('input');
-            inputEnd.type = 'number';
-            inputEnd.value = shot.end.toString();
-            labelEnd.appendChild(inputEnd);
-
-            // Text
-            const labelText = document.createElement('label');
-            labelText.innerHTML = 'Text';
-            const inputText = document.createElement('input');
-            inputText.type = 'text';
-            inputText.className = 'text-input';
-            inputText.value = shot.text;
-            labelText.appendChild(inputText);
-
-            // Buttons
-            const saveBtn = document.createElement('button');
-            saveBtn.className = 'save-btn';
-            saveBtn.textContent = 'Save';
-            saveBtn.addEventListener('click', () => {
-              shot.start = parseInt(inputStart.value, 10) || 0;
-              shot.end = parseInt(inputEnd.value, 10) || 0;
-              shot.text = inputText.value.trim();
-              shot.editing = false;
-              renderShots();
-            });
-
-            const cancelBtn = document.createElement('button');
-            cancelBtn.className = 'cancel-btn';
-            cancelBtn.textContent = 'Cancel';
-            cancelBtn.addEventListener('click', () => {
-              shot.editing = false;
-              renderShots();
-            });
-
-            editForm.appendChild(labelStart);
-            editForm.appendChild(labelEnd);
-            editForm.appendChild(labelText);
-            editForm.appendChild(saveBtn);
-            editForm.appendChild(cancelBtn);
-
-            li.appendChild(editForm);
-          }
-          shotsList.appendChild(li);
-        });
+        return;
       }
+      noShotsMsg.style.display = 'none';
+      copyColumnBtn.disabled = false;
+      copyRowBtn.disabled = false;
+      copyListBtn.disabled = false;
+
+      shots.forEach((shot, i) => {
+        const li = document.createElement('li');
+        li.className = 'shot-item';
+        // highlight if i == currentShotIndex
+        if (i === currentShotIndex) {
+          li.classList.add('highlighted');
+        }
+
+        const timeStr = shot.time ? formatTime(shot.time) : '00:00';
+        const shotLabel = `Shot ${i + 1}`;
+        const textSpan = shot.text ? shot.text : '(No text)';
+
+        // Left block: shot label & time
+        const leftDiv = document.createElement('div');
+        leftDiv.textContent = `${shotLabel}: ${timeStr}`;
+
+        // Right block: text
+        const rightSpan = document.createElement('span');
+        rightSpan.className = 'shot-text';
+        rightSpan.textContent = textSpan;
+
+        li.appendChild(leftDiv);
+        li.appendChild(rightSpan);
+        shotsList.appendChild(li);
+      });
     }
 
-    /* ====== Copy Functions ====== */
+    /* ===== CURRENT SHOT TEXT ===== */
+    function updateCurrentShotText() {
+      if (shots.length === 0) {
+        currentShotTextEl.textContent = 'No shots yet';
+        return;
+      }
+      // If no highlight, show the first shot’s text
+      let index = currentShotIndex < 0 ? 0 : currentShotIndex;
+      // If index is out of range, clamp to last shot
+      if (index >= shots.length) index = shots.length - 1;
+
+      const txt = shots[index].text ? shots[index].text : '(No text)';
+      currentShotTextEl.textContent = txt;
+    }
+
+    /* ===== COPY FUNCTIONS ===== */
     async function copyText(text) {
       if (navigator.clipboard && navigator.clipboard.writeText) {
         try {
           await navigator.clipboard.writeText(text);
           return true;
         } catch (e) {
-          console.warn('Clipboard API failed, fallback:', e);
+          console.warn('Clipboard API failed:', e);
         }
       }
       hiddenCopyArea.value = text;
@@ -506,30 +491,28 @@
     }
 
     function copyAsColumn() {
-      const lines = shots.map(s => `${formatTime(s.start)} - ${formatTime(s.end)}`);
+      const lines = shots.map(s => formatTime(s.time));
       const text = lines.join('\n');
       copyText(text).then(ok => {
         alert(ok ? 'Copied as column!' : 'Copy failed.');
       });
     }
-
     function copyAsRow() {
-      const lines = shots.map(s => `${formatTime(s.start)} - ${formatTime(s.end)}`);
+      const lines = shots.map(s => formatTime(s.time));
       const text = lines.join('\t');
       copyText(text).then(ok => {
         alert(ok ? 'Copied as row!' : 'Copy failed.');
       });
     }
-
     function copyAsList() {
-      const lines = shots.map((s, i) => `Shot ${i + 1}: ${formatTime(s.start)} - ${formatTime(s.end)}`);
+      const lines = shots.map((s,i) => `Shot ${i+1}: ${formatTime(s.time)}`);
       const text = lines.join('\n');
       copyText(text).then(ok => {
         alert(ok ? 'Copied as list!' : 'Copy failed.');
       });
     }
 
-    /* ====== Paste Texts (auto-create shots if needed) ====== */
+    /* ===== PASTE TEXTS ===== */
     async function pasteTexts() {
       try {
         const str = await navigator.clipboard.readText();
@@ -538,19 +521,17 @@
           return;
         }
 
-        // Lines by newline
         let lines = str.split('\n').map(l => l.trim()).filter(l => l !== '');
         let texts;
         if (lines.length > 1) {
           // multiple lines => column
           texts = lines;
         } else {
-          // single line => maybe row (tab separated)
+          // single line => row (tab separated)
           const singleLine = lines.length === 1 ? lines[0] : '';
           const items = singleLine.split('\t').map(i => i.trim()).filter(i => i !== '');
           texts = items.length ? items : [];
         }
-
         if (!texts.length) {
           alert('Could not parse any lines from clipboard');
           return;
@@ -560,15 +541,16 @@
         if (shots.length < texts.length) {
           const needed = texts.length - shots.length;
           for (let i = 0; i < needed; i++) {
-            shots.push({ start: 0, end: 0, text: '', editing: false });
+            shots.push({ text: '', time: 0 });
           }
         }
-        // If texts < shots => just fill the first N shots
+        // Fill the first N shots with text
         const fillCount = Math.min(shots.length, texts.length);
         for (let i = 0; i < fillCount; i++) {
           shots[i].text = texts[i];
         }
         renderShots();
+        updateCurrentShotText();
         alert(`Pasted ${texts.length} text items. Created or updated ${fillCount} shots.`);
       } catch (e) {
         console.error('Failed to read from clipboard', e);
@@ -576,10 +558,11 @@
       }
     }
 
-    /* ====== Event Listeners ====== */
+    /* ===== EVENT HANDLERS ===== */
     startPauseBtn.addEventListener('click', startTimer);
     nextShotBtn.addEventListener('click', nextShot);
-    resetBtn.addEventListener('click', resetTimer);
+    resetTimesBtn.addEventListener('click', resetTimes);
+    resetAllBtn.addEventListener('click', resetAll);
 
     copyColumnBtn.addEventListener('click', copyAsColumn);
     copyRowBtn.addEventListener('click', copyAsRow);
@@ -589,6 +572,7 @@
     // Initialize
     updateTimerDisplay();
     renderShots();
+    updateCurrentShotText();
   </script>
 </body>
 </html>
