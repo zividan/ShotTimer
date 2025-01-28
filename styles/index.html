@@ -1,0 +1,365 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="Content-Style-Type" content="text/css">
+  <title></title>
+  <meta name="Generator" content="Cocoa HTML Writer">
+  <meta name="CocoaVersion" content="2299.77">
+  <style type="text/css">
+    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica}
+    p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica; min-height: 14.0px}
+  </style>
+</head>
+<body>
+<p class="p1">&lt;!DOCTYPE html&gt;</p>
+<p class="p1">&lt;html lang="en"&gt;</p>
+<p class="p1">&lt;head&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;meta charset="UTF-8" /&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;title&gt;Shot Timer&lt;/title&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;style&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>/* Basic Reset */</p>
+<p class="p1"><span class="Apple-converted-space">    </span>* {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>margin: 0;<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">      </span>padding: 0;<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">      </span>box-sizing: border-box;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>body {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>font-family: sans-serif;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>overflow-x: hidden;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>background: #000;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>color: #fff;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>/* Pulsing Gradient Background */</p>
+<p class="p1"><span class="Apple-converted-space">    </span>body::before {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>content: "";</p>
+<p class="p1"><span class="Apple-converted-space">      </span>position: fixed;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>top: 0; left: 0; right: 0; bottom: 0;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>background: linear-gradient(135deg, #8A2BE2, #FF1493);</p>
+<p class="p1"><span class="Apple-converted-space">      </span>filter: blur(80px);</p>
+<p class="p1"><span class="Apple-converted-space">      </span>z-index: 0;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>opacity: 0.3;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>animation: pulse 3s infinite alternate;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>@keyframes pulse {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>0% <span class="Apple-converted-space">  </span>{ opacity: 0.3; }</p>
+<p class="p1"><span class="Apple-converted-space">      </span>100% { opacity: 0.6; }</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>/* Container */</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.container {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>position: relative;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>z-index: 1;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>max-width: 500px;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>margin: 3rem auto;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>padding: 1.5rem;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>background: rgba(0,0,0,0.3);</p>
+<p class="p1"><span class="Apple-converted-space">      </span>border-radius: 1rem;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>box-shadow: 0 0 20px rgba(0,0,0,0.4);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>h1 {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>text-align: center;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>font-size: 2.4rem;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>margin-bottom: 1.5rem;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>font-weight: 900;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>text-shadow: 0 0 10px rgba(255,255,255,0.7);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.timer {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>font-size: 4rem;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>text-align: center;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>margin-bottom: 1rem;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>transition: color 0.5s ease;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>text-shadow: 0 0 15px rgba(255,255,255,0.5);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.timer.running {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>color: #FF77FF; /* Fuchsia-like for running */</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.timer.paused {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>color: #B580FF; /* Purple-like for paused */</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.buttons {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>display: flex;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>justify-content: center;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>gap: 1rem;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>margin-bottom: 2rem;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>button {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>border: none;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>border-radius: 20px;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>padding: 0.6rem 1.2rem;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>font-size: 1rem;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>cursor: pointer;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>transition: background 0.3s ease, opacity 0.3s ease;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>font-weight: 600;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>button:hover {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>opacity: 0.9;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>button:disabled {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>opacity: 0.4;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>cursor: not-allowed;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.start {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>background: #00c851; /* green */</p>
+<p class="p1"><span class="Apple-converted-space">      </span>color: #fff;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.pause {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>background: #ff4444; /* red */</p>
+<p class="p1"><span class="Apple-converted-space">      </span>color: #fff;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.next {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>background: #33b5e5; /* blue */</p>
+<p class="p1"><span class="Apple-converted-space">      </span>color: #fff;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.reset {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>background: #777;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>color: #fff;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.shots-container {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>background: rgba(0,0,0,0.3);</p>
+<p class="p1"><span class="Apple-converted-space">      </span>padding: 1rem;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>border-radius: 1rem;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.shots-header {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>display: flex;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>flex-direction: column;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>align-items: center;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>margin-bottom: 1rem;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.shots-header h2 {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>font-size: 1.4rem;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>margin-bottom: 1rem;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.copy-buttons {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>display: flex;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>gap: 0.5rem;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.copy-btn {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>background: #9c27b0; /* purple */</p>
+<p class="p1"><span class="Apple-converted-space">      </span>color: #fff;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.no-shots {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>color: #ccc;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>text-align: center;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>margin: 1rem 0;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.shot-list {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>list-style: none;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>display: flex;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>flex-direction: column;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>gap: 0.5rem;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.shot-item {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>background: rgba(255,255,255,0.15);</p>
+<p class="p1"><span class="Apple-converted-space">      </span>border-radius: 1rem;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>padding: 0.6rem 1rem;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>display: flex;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>justify-content: space-between;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>align-items: center;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>font-weight: 600;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>box-shadow: 0 0 5px rgba(0,0,0,0.4);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>/* Hidden textarea for fallback copy */</p>
+<p class="p1"><span class="Apple-converted-space">    </span>#hiddenCopyArea {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>position: absolute;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>left: -9999px;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>top: -9999px;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>opacity: 0;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;/style&gt;</p>
+<p class="p1">&lt;/head&gt;</p>
+<p class="p1">&lt;body&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;div class="container"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;h1&gt;Shot Timer&lt;/h1&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;!-- Timer Display --&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div id="timer" class="timer paused"&gt;00:00&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;!-- Buttons --&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="buttons"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;button id="startPauseBtn" class="start"&gt;Start&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;button id="nextShotBtn" class="next" disabled&gt;Next Shot&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;button id="resetBtn" class="reset"&gt;Reset&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;!-- Shots List --&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="shots-container"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;div class="shots-header"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;h2&gt;Shots&lt;/h2&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;div class="copy-buttons"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;button id="copyColumnBtn" class="copy-btn" disabled&gt;Copy as Column&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;button id="copyRowBtn" class="copy-btn" disabled&gt;Copy as Row&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;ul id="shotsList" class="shot-list"&gt;&lt;/ul&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;p id="noShotsMsg" class="no-shots" style="display: none;"&gt;No shots recorded yet.&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;!-- Hidden textarea for fallback copy approach --&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;textarea id="hiddenCopyArea"&gt;&lt;/textarea&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;script&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>// ======== Timer Logic ========</p>
+<p class="p1"><span class="Apple-converted-space">    </span>let elapsedTime = 0;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>let isRunning = false;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>let startTime = null;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>let timerInterval = null;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>// Shots data: array of objects {start, end}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const shots = [];</p>
+<p class="p1"><span class="Apple-converted-space">    </span>let lastShotTime = 0;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>// DOM Elements</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const timerDisplay = document.getElementById('timer');</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const startPauseBtn = document.getElementById('startPauseBtn');</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const nextShotBtn = document.getElementById('nextShotBtn');</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const resetBtn = document.getElementById('resetBtn');</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const shotsList = document.getElementById('shotsList');</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const noShotsMsg = document.getElementById('noShotsMsg');</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const copyColumnBtn = document.getElementById('copyColumnBtn');</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const copyRowBtn = document.getElementById('copyRowBtn');</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const hiddenCopyArea = document.getElementById('hiddenCopyArea');</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>function formatTime(ms) {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>const totalSeconds = Math.floor(ms / 1000);</p>
+<p class="p1"><span class="Apple-converted-space">      </span>const minutes = Math.floor(totalSeconds / 60);</p>
+<p class="p1"><span class="Apple-converted-space">      </span>const seconds = totalSeconds % 60;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>return (</p>
+<p class="p1"><span class="Apple-converted-space">        </span>String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0')</p>
+<p class="p1"><span class="Apple-converted-space">      </span>);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>function updateTimerDisplay() {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>timerDisplay.textContent = formatTime(elapsedTime);</p>
+<p class="p1"><span class="Apple-converted-space">      </span>timerDisplay.className = 'timer ' + (isRunning ? 'running' : 'paused');</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>function startTimer() {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>if (!isRunning) {</p>
+<p class="p1"><span class="Apple-converted-space">        </span>// Start or resume</p>
+<p class="p1"><span class="Apple-converted-space">        </span>startTime = new Date().getTime() - elapsedTime;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>isRunning = true;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>startPauseBtn.textContent = 'Pause';</p>
+<p class="p1"><span class="Apple-converted-space">        </span>startPauseBtn.className = 'pause';</p>
+<p class="p1"><span class="Apple-converted-space">        </span>nextShotBtn.disabled = false;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>timerInterval = setInterval(() =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">          </span>elapsedTime = new Date().getTime() - startTime;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>updateTimerDisplay();</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}, 100);</p>
+<p class="p1"><span class="Apple-converted-space">      </span>} else {</p>
+<p class="p1"><span class="Apple-converted-space">        </span>// Pause</p>
+<p class="p1"><span class="Apple-converted-space">        </span>isRunning = false;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>startPauseBtn.textContent = 'Start';</p>
+<p class="p1"><span class="Apple-converted-space">        </span>startPauseBtn.className = 'start';</p>
+<p class="p1"><span class="Apple-converted-space">        </span>nextShotBtn.disabled = true;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>clearInterval(timerInterval);</p>
+<p class="p1"><span class="Apple-converted-space">        </span>timerInterval = null;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>}</p>
+<p class="p1"><span class="Apple-converted-space">      </span>updateTimerDisplay();</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>function nextShot() {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>// Record from lastShotTime to elapsedTime</p>
+<p class="p1"><span class="Apple-converted-space">      </span>shots.push({ start: lastShotTime, end: elapsedTime });</p>
+<p class="p1"><span class="Apple-converted-space">      </span>lastShotTime = elapsedTime;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>renderShots();</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>function resetTimer() {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>if (timerInterval) {</p>
+<p class="p1"><span class="Apple-converted-space">        </span>clearInterval(timerInterval);</p>
+<p class="p1"><span class="Apple-converted-space">      </span>}</p>
+<p class="p1"><span class="Apple-converted-space">      </span>elapsedTime = 0;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>isRunning = false;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>startTime = null;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>timerInterval = null;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>lastShotTime = 0;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>shots.length = 0;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>startPauseBtn.textContent = 'Start';</p>
+<p class="p1"><span class="Apple-converted-space">      </span>startPauseBtn.className = 'start';</p>
+<p class="p1"><span class="Apple-converted-space">      </span>nextShotBtn.disabled = true;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>updateTimerDisplay();</p>
+<p class="p1"><span class="Apple-converted-space">      </span>renderShots();</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>// ======== Shots Rendering ========</p>
+<p class="p1"><span class="Apple-converted-space">    </span>function renderShots() {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>shotsList.innerHTML = '';</p>
+<p class="p1"><span class="Apple-converted-space">      </span>if (shots.length === 0) {</p>
+<p class="p1"><span class="Apple-converted-space">        </span>noShotsMsg.style.display = 'block';</p>
+<p class="p1"><span class="Apple-converted-space">        </span>copyColumnBtn.disabled = true;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>copyRowBtn.disabled = true;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>} else {</p>
+<p class="p1"><span class="Apple-converted-space">        </span>noShotsMsg.style.display = 'none';</p>
+<p class="p1"><span class="Apple-converted-space">        </span>copyColumnBtn.disabled = false;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>copyRowBtn.disabled = false;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>shots.forEach((shot, idx) =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">          </span>const li = document.createElement('li');</p>
+<p class="p1"><span class="Apple-converted-space">          </span>li.className = 'shot-item';</p>
+<p class="p1"><span class="Apple-converted-space">          </span>li.innerHTML = `</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;span&gt;Shot ${idx + 1}&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;span&gt;${formatTime(shot.start)} - ${formatTime(shot.end)}&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>`;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>shotsList.appendChild(li);</p>
+<p class="p1"><span class="Apple-converted-space">        </span>});</p>
+<p class="p1"><span class="Apple-converted-space">      </span>}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>// ======== Copy Logic (with fallback) ========</p>
+<p class="p1"><span class="Apple-converted-space">    </span>// We try modern navigator.clipboard first; if that fails, we do a hidden &lt;textarea&gt; fallback</p>
+<p class="p1"><span class="Apple-converted-space">    </span>async function copyText(text) {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>// Attempt to use the modern API</p>
+<p class="p1"><span class="Apple-converted-space">      </span>if (navigator.clipboard &amp;&amp; navigator.clipboard.writeText) {</p>
+<p class="p1"><span class="Apple-converted-space">        </span>try {</p>
+<p class="p1"><span class="Apple-converted-space">          </span>await navigator.clipboard.writeText(text);</p>
+<p class="p1"><span class="Apple-converted-space">          </span>return true;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>} catch (e) {</p>
+<p class="p1"><span class="Apple-converted-space">          </span>console.warn('navigator.clipboard.writeText failed, fallback next.', e);</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">      </span>}</p>
+<p class="p1"><span class="Apple-converted-space">      </span>// Fallback: hidden textarea</p>
+<p class="p1"><span class="Apple-converted-space">      </span>hiddenCopyArea.value = text;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>hiddenCopyArea.select();</p>
+<p class="p1"><span class="Apple-converted-space">      </span>hiddenCopyArea.setSelectionRange(0, text.length);</p>
+<p class="p1"><span class="Apple-converted-space">      </span>const ok = document.execCommand('copy');</p>
+<p class="p1"><span class="Apple-converted-space">      </span>return ok;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>function copyAsColumn() {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>const lines = shots.map(s =&gt; `${formatTime(s.start)} - ${formatTime(s.end)}`);</p>
+<p class="p1"><span class="Apple-converted-space">      </span>const text = lines.join('\n');</p>
+<p class="p1"><span class="Apple-converted-space">      </span>copyText(text).then((success) =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">        </span>if (success) {</p>
+<p class="p1"><span class="Apple-converted-space">          </span>alert('Copied shot timings as column!');</p>
+<p class="p1"><span class="Apple-converted-space">        </span>} else {</p>
+<p class="p1"><span class="Apple-converted-space">          </span>alert('Failed to copy. Possibly restricted by the browser.');</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">      </span>});</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>function copyAsRow() {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>const lines = shots.map(s =&gt; `${formatTime(s.start)} - ${formatTime(s.end)}`);</p>
+<p class="p1"><span class="Apple-converted-space">      </span>// Tab-separated</p>
+<p class="p1"><span class="Apple-converted-space">      </span>const text = lines.join('\t');</p>
+<p class="p1"><span class="Apple-converted-space">      </span>copyText(text).then((success) =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">        </span>if (success) {</p>
+<p class="p1"><span class="Apple-converted-space">          </span>alert('Copied shot timings as row!');</p>
+<p class="p1"><span class="Apple-converted-space">        </span>} else {</p>
+<p class="p1"><span class="Apple-converted-space">          </span>alert('Failed to copy. Possibly restricted by the browser.');</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">      </span>});</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>// ======== Event Listeners ========</p>
+<p class="p1"><span class="Apple-converted-space">    </span>startPauseBtn.addEventListener('click', startTimer);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>nextShotBtn.addEventListener('click', nextShot);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>resetBtn.addEventListener('click', resetTimer);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>copyColumnBtn.addEventListener('click', copyAsColumn);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>copyRowBtn.addEventListener('click', copyAsRow);</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>// Initialize</p>
+<p class="p1"><span class="Apple-converted-space">    </span>updateTimerDisplay();</p>
+<p class="p1"><span class="Apple-converted-space">    </span>renderShots();</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;/script&gt;</p>
+<p class="p1">&lt;/body&gt;</p>
+<p class="p1">&lt;/html&gt;</p>
+</body>
+</html>
