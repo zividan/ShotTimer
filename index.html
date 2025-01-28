@@ -3,52 +3,226 @@
 <head>
   <meta charset="UTF-8" />
   <title>Shot Timer</title>
-  <!-- Tailwind CSS via CDN -->
-  <link
-    href="https://cdn.jsdelivr.net/npm/tailwindcss@3.3.2/dist/tailwind.min.css"
-    rel="stylesheet"
-  />
-  <!-- React (UMD Production Build) -->
-  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <!-- ReactDOM (UMD Production Build) -->
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <style>
+    /* ========= GLOBAL STYLES ========= */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: system-ui, sans-serif;
+      color: #fff;
+      overflow: hidden;
+      /* Pulsing gradient background */
+      background: linear-gradient(135deg, #020202, #1a1a1a);
+      position: relative;
+      min-height: 100vh;
+      /* Center content */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+    /* Animated glow backdrop */
+    body::before {
+      content: "";
+      position: absolute;
+      top: 50%; left: 50%;
+      width: 500px; height: 500px;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,0,255,0.3) 0%, transparent 70%);
+      animation: pulseGlow 3s alternate infinite ease-in-out;
+      z-index: 0;
+    }
+    @keyframes pulseGlow {
+      from {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 0.4;
+      }
+      to {
+        transform: translate(-50%, -50%) scale(1.3);
+        opacity: 0.6;
+      }
+    }
+
+    /* ========= CONTAINER ========= */
+    .container {
+      position: relative;
+      z-index: 1;  /* above the glow */
+      max-width: 600px;
+      width: 100%;
+      background: rgba(0,0,0,0.3);
+      backdrop-filter: blur(8px);
+      border-radius: 1rem;
+      box-shadow: 0 0 20px rgba(0,0,0,0.5);
+      padding: 2rem;
+    }
+    .title {
+      font-size: 2.6rem;
+      font-weight: 800;
+      text-align: center;
+      margin-bottom: 1.5rem;
+      text-shadow: 0 0 10px rgba(255,255,255,0.7);
+    }
+
+    /* ========= TIMER ========= */
+    .timer {
+      font-size: 4rem;
+      text-align: center;
+      margin-bottom: 1.5rem;
+      text-shadow: 0 0 12px rgba(255,255,255,0.6);
+      transition: color 0.3s ease;
+    }
+    .timer.running {
+      color: #ff77ff; /* fuchsia */
+    }
+    .timer.paused {
+      color: #b580ff; /* purple */
+    }
+
+    /* ========= BUTTONS ========= */
+    .buttons {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    button {
+      border: none;
+      outline: none;
+      cursor: pointer;
+      padding: 0.7rem 1.2rem;
+      font-size: 1rem;
+      font-weight: 600;
+      border-radius: 9999px;
+      transition: background 0.3s, opacity 0.3s;
+      color: #fff;
+    }
+    button:hover:not(:disabled) {
+      opacity: 0.85;
+    }
+    button:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .start {
+      background: #00c851; /* green */
+    }
+    .pause {
+      background: #ff4444; /* red */
+    }
+    .next {
+      background: #33b5e5; /* blue */
+    }
+    .reset {
+      background: #777;
+    }
+
+    /* ========= SHOTS ========= */
+    .shots-section {
+      margin-top: 1rem;
+    }
+    .shots-header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+    .shots-header h2 {
+      font-size: 1.6rem;
+      margin-bottom: 1rem;
+      font-weight: 700;
+    }
+    .copy-buttons {
+      display: flex;
+      gap: 0.5rem;
+    }
+    .copy-btn {
+      background: #9c27b0; /* purple */
+      color: #fff;
+    }
+    .shots-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
+    .shot-item {
+      display: flex;
+      justify-content: space-between;
+      background: rgba(255,255,255,0.1);
+      border-radius: 8px;
+      padding: 0.6rem 1rem;
+      font-weight: 600;
+      box-shadow: 0 0 4px rgba(0,0,0,0.2);
+    }
+    .no-shots {
+      text-align: center;
+      color: #ccc;
+      font-weight: 500;
+    }
+    /* Hidden textarea for fallback copy approach if needed */
+    #hiddenCopyArea {
+      position: absolute;
+      left: -9999px;
+      top: -9999px;
+      opacity: 0;
+    }
+  </style>
 </head>
 <body>
-  <div id="root"></div>
+  <div class="container">
+    <h1 class="title">Shot Timer</h1>
+    <div id="timer" class="timer paused">00:00</div>
+
+    <div class="buttons">
+      <button id="startPauseBtn" class="start">Start</button>
+      <button id="nextShotBtn" class="next" disabled>Next Shot</button>
+      <button id="resetBtn" class="reset">Reset</button>
+    </div>
+
+    <div class="shots-section">
+      <div class="shots-header">
+        <h2>Shots</h2>
+        <div class="copy-buttons">
+          <button id="copyColumnBtn" class="copy-btn" disabled>Copy as Column</button>
+          <button id="copyRowBtn" class="copy-btn" disabled>Copy as Row</button>
+        </div>
+      </div>
+      <ul id="shotsList" class="shots-list"></ul>
+      <p id="noShotsMsg" class="no-shots" style="display: none;">No shots recorded yet.</p>
+    </div>
+  </div>
+
+  <!-- Hidden textarea for fallback copying if needed -->
+  <textarea id="hiddenCopyArea"></textarea>
 
   <script>
-    const { createElement, useState, useRef, useEffect } = React;
-    const { createRoot } = ReactDOM;
+    /* =========================
+       SHOT TIMER LOGIC
+    ========================= */
+    let elapsedTime = 0;
+    let isRunning = false;
+    let startTime = null;
+    let timerInterval = null;
 
-    // Minimal replacements for your custom Button, Card, CardContent
-    function Button({ children, className = '', onClick, disabled }) {
-      return createElement(
-        'button',
-        {
-          disabled,
-          onClick,
-          className:
-            'rounded-full px-6 py-3 font-semibold transition-colors text-lg shadow-md ' +
-            className +
-            (disabled ? ' opacity-50 cursor-not-allowed' : ''),
-        },
-        children
-      );
-    }
+    const shots = [];
+    let lastShotTime = 0;
 
-    function Card({ children, className = '' }) {
-      return createElement(
-        'div',
-        { className: 'border border-gray-700 rounded-2xl shadow-2xl bg-opacity-40 backdrop-blur-md ' + className },
-        children
-      );
-    }
+    // DOM elements
+    const timerEl = document.getElementById('timer');
+    const startPauseBtn = document.getElementById('startPauseBtn');
+    const nextShotBtn = document.getElementById('nextShotBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const shotsList = document.getElementById('shotsList');
+    const noShotsMsg = document.getElementById('noShotsMsg');
+    const copyColumnBtn = document.getElementById('copyColumnBtn');
+    const copyRowBtn = document.getElementById('copyRowBtn');
+    const hiddenCopyArea = document.getElementById('hiddenCopyArea');
 
-    function CardContent({ children, className = '' }) {
-      return createElement('div', { className }, children);
-    }
-
-    // Helper to format elapsed time as MM:SS (ignoring hours)
     function formatTime(ms) {
       const totalSeconds = Math.floor(ms / 1000);
       const minutes = Math.floor(totalSeconds / 60);
@@ -56,249 +230,132 @@
       return String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0');
     }
 
-    // Basic test cases for formatTime
-    function testFormatTime() {
-      console.assert(formatTime(0) === '00:00', 'Expected 00:00 for 0 ms');
-      console.assert(formatTime(59999) === '00:59', 'Expected 00:59 for 59999 ms');
-      console.assert(formatTime(60000) === '01:00', 'Expected 01:00 for 60000 ms');
-      console.assert(formatTime(3599999) === '59:59', 'Expected 59:59 for 3599999 ms');
-      console.assert(formatTime(3600000) === '60:00', 'Expected 60:00 for 3600000 ms');
-      console.log('testFormatTime passed all tests!');
+    function updateTimerDisplay() {
+      timerEl.textContent = formatTime(elapsedTime);
+      timerEl.className = 'timer ' + (isRunning ? 'running' : 'paused');
     }
-    testFormatTime();
 
-    function StopwatchTimer() {
-      const [elapsedTime, setElapsedTime] = useState(0);
-      const [isRunning, setIsRunning] = useState(false);
-      const [startTime, setStartTime] = useState(null);
-      const [shots, setShots] = useState([]);
-      const [lastShotTime, setLastShotTime] = useState(0);
-      const timerRef = useRef(null);
-
-      // Timer effect
-      useEffect(() => {
-        if (isRunning) {
-          timerRef.current = setInterval(() => {
-            if (startTime) {
-              const now = new Date();
-              setElapsedTime(now.getTime() - startTime.getTime());
-            }
-          }, 100);
-        } else if (timerRef.current) {
-          clearInterval(timerRef.current);
-        }
-        return () => {
-          if (timerRef.current) clearInterval(timerRef.current);
-        };
-      }, [isRunning, startTime]);
-
-      function handleStart() {
-        if (!isRunning) {
-          setStartTime(new Date(Date.now() - elapsedTime));
-          setIsRunning(true);
-        } else {
-          setIsRunning(false);
-        }
+    function tick() {
+      if (startTime !== null) {
+        elapsedTime = Date.now() - startTime;
+        updateTimerDisplay();
       }
+    }
 
-      function handleNextShot() {
-        setShots((prev) => [...prev, { start: lastShotTime, end: elapsedTime }]);
-        setLastShotTime(elapsedTime);
+    function startTimer() {
+      if (!isRunning) {
+        // start or resume
+        startTime = Date.now() - elapsedTime;
+        isRunning = true;
+        startPauseBtn.textContent = 'Pause';
+        startPauseBtn.className = 'pause';
+        nextShotBtn.disabled = false;
+        timerInterval = setInterval(tick, 100);
+      } else {
+        // pause
+        isRunning = false;
+        startPauseBtn.textContent = 'Start';
+        startPauseBtn.className = 'start';
+        nextShotBtn.disabled = true;
+        clearInterval(timerInterval);
+        timerInterval = null;
       }
+      updateTimerDisplay();
+    }
 
-      function handleReset() {
-        setIsRunning(false);
-        setElapsedTime(0);
-        setShots([]);
-        setLastShotTime(0);
-        setStartTime(null);
+    function nextShot() {
+      shots.push({ start: lastShotTime, end: elapsedTime });
+      lastShotTime = elapsedTime;
+      renderShots();
+    }
+
+    function resetTimer() {
+      if (timerInterval) {
+        clearInterval(timerInterval);
       }
+      elapsedTime = 0;
+      isRunning = false;
+      startTime = null;
+      timerInterval = null;
+      lastShotTime = 0;
+      shots.length = 0;
 
-      // Timer color classes
-      const timerColorClass = isRunning
-        ? 'text-fuchsia-300 drop-shadow-[0_0_10px_rgba(245,0,255,0.6)]'
-        : 'text-purple-300 drop-shadow-[0_0_10px_rgba(128,90,213,0.6)]';
+      startPauseBtn.textContent = 'Start';
+      startPauseBtn.className = 'start';
+      nextShotBtn.disabled = true;
+      updateTimerDisplay();
+      renderShots();
+    }
 
-      // Copy helper
-      async function copyTextSafely(text, successMsg) {
-        if (navigator?.clipboard?.writeText) {
+    function renderShots() {
+      shotsList.innerHTML = '';
+      if (shots.length === 0) {
+        noShotsMsg.style.display = 'block';
+        copyColumnBtn.disabled = true;
+        copyRowBtn.disabled = true;
+      } else {
+        noShotsMsg.style.display = 'none';
+        copyColumnBtn.disabled = false;
+        copyRowBtn.disabled = false;
+        shots.forEach((shot, idx) => {
+          const li = document.createElement('li');
+          li.className = 'shot-item';
+          li.innerHTML = `
+            <span>Shot ${idx + 1}</span>
+            <span>${formatTime(shot.start)} - ${formatTime(shot.end)}</span>
+          `;
+          shotsList.appendChild(li);
+        });
+      }
+    }
+
+    // Copy logic with fallback
+    async function copyText(text) {
+      // Attempt modern API
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        try {
           await navigator.clipboard.writeText(text);
-          alert(successMsg);
-        } else {
-          console.warn('Clipboard API not available.');
-          alert('Clipboard not supported in this environment.');
+          return true;
+        } catch (e) {
+          console.warn('navigator.clipboard.writeText failed:', e);
         }
       }
-
-      async function copyAsColumn() {
-        try {
-          const lines = shots.map(
-            (shot) => formatTime(shot.start) + ' - ' + formatTime(shot.end)
-          );
-          const text = lines.join('\n');
-          await copyTextSafely(text, 'Copied shot timings as column!');
-        } catch (err) {
-          console.error('Failed to copy text: ', err);
-        }
-      }
-
-      async function copyAsRow() {
-        try {
-          const lines = shots.map(
-            (shot) => formatTime(shot.start) + ' - ' + formatTime(shot.end)
-          );
-          // tab-separated so Google Sheets will put each shot in a separate column
-          const text = lines.join('\t');
-          await copyTextSafely(text, 'Copied shot timings as row!');
-        } catch (err) {
-          console.error('Failed to copy text: ', err);
-        }
-      }
-
-      return createElement(
-        'div',
-        {
-          className:
-            'relative min-h-screen bg-gradient-to-r from-black via-gray-900 to-gray-800 p-8 flex flex-col items-center text-white',
-        },
-        // Title
-        createElement(
-          'h1',
-          {
-            className:
-              'text-5xl font-extrabold mb-8 text-center tracking-wide drop-shadow-[0_0_10px_rgba(255,255,255,0.8)]',
-          },
-          'Shot Timer'
-        ),
-        // Timer Display
-        createElement(
-          Card,
-          null,
-          createElement(
-            CardContent,
-            { className: 'flex flex-col items-center gap-8 py-12' },
-            createElement(
-              'div',
-              {
-                className:
-                  'text-7xl font-mono transition-colors duration-300 ' + timerColorClass,
-              },
-              formatTime(elapsedTime)
-            ),
-            createElement(
-              'div',
-              { className: 'flex gap-4' },
-              createElement(
-                Button,
-                {
-                  onClick: handleStart,
-                  className:
-                    (isRunning
-                      ? 'bg-red-500 hover:bg-red-600'
-                      : 'bg-green-500 hover:bg-green-600') + ' text-white',
-                },
-                isRunning ? 'Pause' : 'Start'
-              ),
-              createElement(
-                Button,
-                {
-                  onClick: handleNextShot,
-                  disabled: !isRunning,
-                  className:
-                    (isRunning
-                      ? 'bg-blue-500 hover:bg-blue-600'
-                      : 'bg-gray-600 text-gray-300 cursor-not-allowed') + ' font-semibold text-white',
-                },
-                'Next Shot'
-              ),
-              createElement(
-                Button,
-                {
-                  onClick: handleReset,
-                  className: 'bg-gray-700 hover:bg-gray-600 text-white',
-                },
-                'Reset'
-              )
-            )
-          )
-        ),
-        // Shots List
-        createElement(
-          Card,
-          { className: 'mt-6' },
-          createElement(
-            CardContent,
-            null,
-            // Title + Centered Buttons
-            createElement(
-              'div',
-              { className: 'flex flex-col items-center text-center mb-6' },
-              createElement(
-                'h2',
-                { className: 'text-2xl font-semibold text-white mb-4' },
-                'Shots'
-              ),
-              createElement(
-                'div',
-                { className: 'bg-black bg-opacity-40 py-3 px-6 rounded-xl flex gap-2 justify-center' },
-                createElement(
-                  Button,
-                  {
-                    onClick: copyAsColumn,
-                    className:
-                      'bg-purple-600 hover:bg-purple-700 text-white font-semibold px-4 py-2 rounded-full text-sm',
-                    disabled: shots.length === 0,
-                  },
-                  'Copy as Column'
-                ),
-                createElement(
-                  Button,
-                  {
-                    onClick: copyAsRow,
-                    className:
-                      'bg-purple-600 hover:bg-purple-700 text-white font-semibold px-4 py-2 rounded-full text-sm',
-                    disabled: shots.length === 0,
-                  },
-                  'Copy as Row'
-                )
-              )
-            ),
-            shots.length === 0
-              ? createElement(
-                  'p',
-                  { className: 'text-gray-300 text-center' },
-                  'No shots recorded yet.'
-                )
-              : createElement(
-                  'ul',
-                  { className: 'flex flex-col gap-4' },
-                  shots.map((shot, index) =>
-                    createElement(
-                      'li',
-                      {
-                        key: index,
-                        className:
-                          'bg-gray-800 bg-opacity-60 p-4 rounded-xl flex items-center justify-between shadow-md',
-                      },
-                      createElement(
-                        'span',
-                        { className: 'font-bold' },
-                        'Shot ' + (index + 1)
-                      ),
-                      createElement(
-                        'span',
-                        { className: 'tracking-wide' },
-                        formatTime(shot.start) + ' - ' + formatTime(shot.end)
-                      )
-                    )
-                  )
-                )
-          )
-        )
-      );
+      // Fallback: hidden <textarea>
+      hiddenCopyArea.value = text;
+      hiddenCopyArea.select();
+      hiddenCopyArea.setSelectionRange(0, text.length);
+      const ok = document.execCommand('copy');
+      return ok;
     }
 
-    createRoot(document.getElementById('root')).render(createElement(StopwatchTimer));
+    function copyAsColumn() {
+      const lines = shots.map(s => `${formatTime(s.start)} - ${formatTime(s.end)}`);
+      const text = lines.join('\n');
+      copyText(text).then(success => {
+        if (success) alert('Copied shot timings as column!');
+        else alert('Copy failed (possibly blocked).');
+      });
+    }
+
+    function copyAsRow() {
+      const lines = shots.map(s => `${formatTime(s.start)} - ${formatTime(s.end)}`);
+      const text = lines.join('\t');
+      copyText(text).then(success => {
+        if (success) alert('Copied shot timings as row!');
+        else alert('Copy failed (possibly blocked).');
+      });
+    }
+
+    // Event Listeners
+    startPauseBtn.addEventListener('click', startTimer);
+    nextShotBtn.addEventListener('click', nextShot);
+    resetBtn.addEventListener('click', resetTimer);
+    copyColumnBtn.addEventListener('click', copyAsColumn);
+    copyRowBtn.addEventListener('click', copyAsRow);
+
+    // Init
+    updateTimerDisplay();
+    renderShots();
   </script>
 </body>
 </html>
