@@ -6,7 +6,7 @@ let timerInterval = null;
 
 // Each shot: { text: string, start: number|undefined, end: number|undefined }
 const shots = [];
-let currentShotIndex = -1; // which shot is highlighted
+let currentShotIndex = -1; // highlight index in shot list
 
 // DOM references
 const timerEl         = document.getElementById('timer');
@@ -25,11 +25,6 @@ const copyRowBtn      = document.getElementById('copyRowBtn');
 const copyListBtn     = document.getElementById('copyListBtn');
 const hiddenCopyArea  = document.getElementById('hiddenCopyArea');
 
-// Current/Next text lines
-const currentTextInner = document.getElementById('currentTextInner');
-const shotLineCurrent  = document.getElementById('shotLineCurrent');
-const shotLineNext     = document.getElementById('shotLineNext');
-
 /* ====== HELPER: format mm:ss ====== */
 function formatTime(ms) {
   const totalSeconds = Math.floor(ms / 1000);
@@ -43,6 +38,7 @@ function updateTimerDisplay() {
   timerEl.className = 'timer ' + (isRunning ? 'running' : 'paused');
 }
 
+// Called ~10 times a second when running
 function tick() {
   if (startTime !== null) {
     elapsedTime = Date.now() - startTime;
@@ -60,9 +56,10 @@ function startTimer() {
     startPauseBtn.className = 'pause';
     nextShotBtn.disabled = false;
 
-    // If we have shots but no highlight yet, highlight first shot
+    // If we have shots but none highlighted, highlight the first
     if (shots.length > 0 && currentShotIndex < 0) {
       currentShotIndex = 0;
+      // set start if not set
       if (shots[0].start === undefined) {
         shots[0].start = elapsedTime;
       }
@@ -79,26 +76,25 @@ function startTimer() {
   }
   updateTimerDisplay();
   renderShots();
-  updateShotTextLines(false);
 }
 
 /* ===== NEXT SHOT ===== */
 function nextShot() {
   if (currentShotIndex < 0 || currentShotIndex >= shots.length) {
-    alert('No available shot to set. Please paste texts or add shots first.');
+    alert('No available shot to set. Paste texts or add shots first.');
     return;
   }
-  // Ensure current shot has a start
+  // If current shot has no start, set it now
   if (shots[currentShotIndex].start === undefined) {
     shots[currentShotIndex].start = elapsedTime;
   }
-  // Set its end
+  // Mark its end
   shots[currentShotIndex].end = elapsedTime;
 
   // Move to next shot
   const nextIndex = currentShotIndex + 1;
   if (nextIndex >= shots.length) {
-    alert('No more shots to highlight – you’ve recorded them all!');
+    alert('No more shots to highlight – all recorded!');
   } else {
     currentShotIndex = nextIndex;
     if (shots[currentShotIndex].start === undefined) {
@@ -106,8 +102,6 @@ function nextShot() {
     }
   }
   renderShots();
-  // Animate the text lines
-  rollShotText();
 }
 
 /* ===== RESET TIMES ===== */
@@ -128,7 +122,6 @@ function resetTimes() {
   nextShotBtn.disabled = true;
   updateTimerDisplay();
   renderShots();
-  updateShotTextLines(false);
 }
 
 /* ===== RESET ALL ===== */
@@ -146,10 +139,9 @@ function resetAll() {
   nextShotBtn.disabled = true;
   updateTimerDisplay();
   renderShots();
-  updateShotTextLines(false);
 }
 
-/* ===== RENDER SHOTS ===== */
+/* ===== RENDER SHOTS (highlight the 'currentShotIndex') ===== */
 function renderShots() {
   shotsList.innerHTML = '';
   if (shots.length === 0) {
@@ -165,35 +157,30 @@ function renderShots() {
   copyListBtn.disabled = false;
 
   shots.forEach((shot, i) => {
-    // We'll make a .shot-item with 3 sections:
-    // .shot-number, .shot-time, .shot-text
     const li = document.createElement('li');
     li.className = 'shot-item';
 
+    // If this is the highlighted shot
     if (i === currentShotIndex) {
       li.classList.add('highlighted');
     }
 
-    // Shot number
+    // 3 sections: shot-number, shot-time, shot-text
     const divNumber = document.createElement('div');
     divNumber.className = 'shot-number';
     divNumber.textContent = `Shot ${i+1}`;
 
-    // Time
     const divTime = document.createElement('div');
     divTime.className = 'shot-time';
-    // If start/end set, format them. If partially or not at all set, omit
+    // Show time if set
     let timeStr = '';
     if (shot.start !== undefined && shot.end !== undefined) {
       timeStr = `${formatTime(shot.start)} - ${formatTime(shot.end)}`;
     } else if (shot.start !== undefined) {
       timeStr = formatTime(shot.start);
-    } else {
-      timeStr = ''; // blank if none
     }
     divTime.textContent = timeStr;
 
-    // Text
     const divText = document.createElement('div');
     divText.className = 'shot-text';
     divText.textContent = shot.text || '';
@@ -201,7 +188,6 @@ function renderShots() {
     li.appendChild(divNumber);
     li.appendChild(divTime);
     li.appendChild(divText);
-
     shotsList.appendChild(li);
   });
 
@@ -220,45 +206,9 @@ function renderShots() {
   }
 }
 
-/* ===== CURRENT & NEXT SHOT TEXT LINES (CAROUSEL) ===== */
-function updateShotTextLines(doRoll) {
-  let idxCur = currentShotIndex;
-  // If not started => show first shot text in lineNext, none in lineCurrent
-  if (idxCur < 0) {
-    shotLineCurrent.textContent = '';
-    shotLineNext.textContent = shots.length ? (shots[0].text || '') : '';
-  } else {
-    if (idxCur >= shots.length) idxCur = shots.length - 1;
-    shotLineCurrent.textContent = shots[idxCur].text || '';
-    const idxN = idxCur + 1;
-    shotLineNext.textContent = (idxN < shots.length) ? (shots[idxN].text || '') : '';
-  }
-
-  if (doRoll) {
-    rollShotText();
-  } else {
-    currentTextInner.classList.remove('roll', 'roll-done');
-  }
-}
-
-function rollShotText() {
-  // 1) add .roll, after 600ms remove it but add .roll-done
-  currentTextInner.classList.remove('roll-done');
-  currentTextInner.classList.add('roll');
-  setTimeout(() => {
-    currentTextInner.classList.remove('roll');
-    currentTextInner.classList.add('roll-done');
-    // remove roll-done after next frame if you want subsequent rolls
-    requestAnimationFrame(() => {
-      currentTextInner.classList.remove('roll-done');
-    });
-  }, 600);
-}
-
 /* ===== COPY FUNCTIONS ===== */
 async function copyText(text) {
-  // Hide any leftover hidden area
-  hiddenCopyArea.style.display = 'block';
+  hiddenCopyArea.style.display = 'block'; // fallback
   hiddenCopyArea.value = text;
   hiddenCopyArea.select();
   hiddenCopyArea.setSelectionRange(0, text.length);
@@ -271,7 +221,6 @@ async function copyText(text) {
   }
   hiddenCopyArea.style.display = 'none';
 
-  // Attempt the modern API second, if you prefer the other way around, that's also possible
   if (!ok && navigator.clipboard && navigator.clipboard.writeText) {
     try {
       await navigator.clipboard.writeText(text);
@@ -358,7 +307,6 @@ async function pasteTexts() {
     }
 
     renderShots();
-    updateShotTextLines(false);
     alert(`Pasted ${texts.length} text items. Created or updated ${fillCount} shots.`);
   } catch(e) {
     console.error('Failed to read from clipboard', e);
@@ -380,8 +328,4 @@ copyListBtn.addEventListener('click', copyAsList);
 
 // Init
 updateTimerDisplay();
-renderShots();
-
-// No “current shot,” so we show next line if there's a first shot
-shotLineCurrent.textContent = '';
-shotLineNext.textContent = shots.length ? (shots[0].text || '') : '';
+renderShots(); 
