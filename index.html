@@ -4,27 +4,22 @@
   <meta charset="UTF-8" />
   <title>Idan's Shot Timer</title>
   <style>
-    /* ========= GLOBAL STYLES ========= */
+    /* =========== GLOBAL RESET & BACKGROUND =========== */
     * {
-      margin: 0;
-      padding: 0;
+      margin: 0; 
+      padding: 0; 
       box-sizing: border-box;
     }
-    body {
-      font-family: system-ui, sans-serif;
-      color: #fff;
-      overflow: hidden;
-      /* Pulsing gradient background */
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden; /* We’ll handle scrolling in the shots area */
+      font-family: sans-serif;
       background: linear-gradient(135deg, #020202, #1a1a1a);
+      color: #fff;
       position: relative;
-      min-height: 100vh;
-      /* Center content */
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 2rem;
     }
-    /* Animated glow backdrop */
+    /* Pulsing glow effect behind everything */
     body::before {
       content: "";
       position: absolute;
@@ -47,33 +42,35 @@
       }
     }
 
-    /* ========= CONTAINER ========= */
-    .container {
-      position: relative;
-      z-index: 1;  /* above the glow */
-      max-width: 600px;
-      width: 100%;
-      background: rgba(0,0,0,0.3);
-      backdrop-filter: blur(8px);
-      border-radius: 1rem;
-      box-shadow: 0 0 20px rgba(0,0,0,0.5);
-      padding: 2rem;
+    /* =========== FIXED HEADER =========== */
+    .header {
+      position: fixed;
+      top: 0; 
+      left: 0; 
+      right: 0;
+      z-index: 10;
+      background: rgba(0,0,0,0.4);
+      backdrop-filter: blur(6px);
+      box-shadow: 0 0 15px rgba(0,0,0,0.5);
+      padding: 1rem;
     }
-    .title {
-      font-size: 2.6rem;
+    .header-inner {
+      max-width: 700px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+    }
+    .header h1 {
+      font-size: 2.2rem;
       font-weight: 800;
-      text-align: center;
-      margin-bottom: 1.5rem;
-      text-shadow: 0 0 10px rgba(255,255,255,0.7);
+      text-shadow: 0 0 8px rgba(255,255,255,0.5);
     }
-
-    /* ========= TIMER ========= */
     .timer {
-      font-size: 4rem;
-      text-align: center;
-      margin-bottom: 1.5rem;
-      text-shadow: 0 0 12px rgba(255,255,255,0.6);
+      font-size: 3rem;
       transition: color 0.3s ease;
+      text-shadow: 0 0 10px rgba(255,255,255,0.6);
     }
     .timer.running {
       color: #ff77ff; /* fuchsia */
@@ -81,24 +78,21 @@
     .timer.paused {
       color: #b580ff; /* purple */
     }
-
-    /* ========= BUTTONS ========= */
     .buttons {
       display: flex;
-      justify-content: center;
       gap: 1rem;
-      margin-bottom: 2rem;
     }
+
+    /* =========== BUTTON STYLES =========== */
     button {
       border: none;
-      outline: none;
-      cursor: pointer;
+      border-radius: 9999px;
       padding: 0.7rem 1.2rem;
       font-size: 1rem;
       font-weight: 600;
-      border-radius: 9999px;
-      transition: background 0.3s, opacity 0.3s;
+      cursor: pointer;
       color: #fff;
+      transition: 0.3s ease;
     }
     button:hover:not(:disabled) {
       opacity: 0.85;
@@ -120,9 +114,36 @@
       background: #777;
     }
 
-    /* ========= SHOTS ========= */
-    .shots-section {
-      margin-top: 1rem;
+    /* =========== MAIN CONTENT SCROLL AREA =========== */
+    .main-content {
+      position: absolute;
+      top: 0; 
+      left: 0; 
+      right: 0; 
+      bottom: 0;
+      display: flex;
+      justify-content: center;
+      padding-top: 200px; /* Enough space so the header doesn't overlap */
+      overflow: hidden;
+    }
+    .shots-container {
+      position: relative;
+      width: 100%;
+      max-width: 700px;
+      margin: 0 auto;
+      padding: 1rem;
+      /* background if desired:
+      background: rgba(0,0,0,0.3);
+      backdrop-filter: blur(6px);
+      border-radius: 1rem; 
+      */
+      overflow: hidden; 
+      /* We'll use a sub-wrapper for the scroll so the title stays visible */
+    }
+    .shots-scrollable {
+      max-height: calc(100vh - 220px); /* screen height minus header space */
+      overflow-y: auto;
+      padding-right: 0.5rem; /* just to avoid a hidden scrollbar overlap */
     }
     .shots-header {
       display: flex;
@@ -132,8 +153,9 @@
     }
     .shots-header h2 {
       font-size: 1.6rem;
-      margin-bottom: 1rem;
       font-weight: 700;
+      margin-bottom: 1rem;
+      text-shadow: 0 0 6px rgba(255,255,255,0.4);
     }
     .copy-buttons {
       display: flex;
@@ -141,30 +163,32 @@
     }
     .copy-btn {
       background: #9c27b0; /* purple */
-      color: #fff;
     }
+
     .shots-list {
       list-style: none;
       display: flex;
       flex-direction: column;
       gap: 0.5rem;
-      margin-top: 1rem;
+      margin-bottom: 1rem;
     }
     .shot-item {
-      display: flex;
-      justify-content: space-between;
-      background: rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.15);
       border-radius: 8px;
       padding: 0.6rem 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
       font-weight: 600;
-      box-shadow: 0 0 4px rgba(0,0,0,0.2);
+      box-shadow: 0 0 4px rgba(0,0,0,0.3);
     }
     .no-shots {
       text-align: center;
       color: #ccc;
       font-weight: 500;
+      margin-bottom: 1rem;
     }
-    /* Hidden textarea for fallback copy approach if needed */
+    /* Hidden textarea fallback for copy */
     #hiddenCopyArea {
       position: absolute;
       left: -9999px;
@@ -174,41 +198,50 @@
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1 class="title">Idan's Shot Timer</h1>
-    <div id="timer" class="timer paused">00:00</div>
-
-    <div class="buttons">
-      <button id="startPauseBtn" class="start">Start</button>
-      <button id="nextShotBtn" class="next" disabled>Next Shot</button>
-      <button id="resetBtn" class="reset">Reset</button>
-    </div>
-
-    <div class="shots-section">
-      <div class="shots-header">
-        <h2>Shots</h2>
-        <div class="copy-buttons">
-          <button id="copyColumnBtn" class="copy-btn" disabled>Copy as Column</button>
-          <button id="copyRowBtn" class="copy-btn" disabled>Copy as Row</button>
-        </div>
+  <!-- FIXED HEADER AT TOP -->
+  <div class="header">
+    <div class="header-inner">
+      <h1>Idan's Shot Timer</h1>
+      <!-- Timer -->
+      <div id="timer" class="timer paused">00:00</div>
+      <!-- Buttons -->
+      <div class="buttons">
+        <button id="startPauseBtn" class="start">Start</button>
+        <button id="nextShotBtn" class="next" disabled>Next Shot</button>
+        <button id="resetBtn" class="reset">Reset</button>
       </div>
-      <ul id="shotsList" class="shots-list"></ul>
-      <p id="noShotsMsg" class="no-shots" style="display: none;">No shots recorded yet.</p>
     </div>
   </div>
 
-  <!-- Hidden textarea for fallback copying if needed -->
+  <!-- SCROLLABLE SHOTS AREA -->
+  <div class="main-content">
+    <div class="shots-container">
+      <div class="shots-scrollable">
+        <div class="shots-header">
+          <h2>Shots</h2>
+          <div class="copy-buttons">
+            <button id="copyColumnBtn" class="copy-btn" disabled>Copy as Column</button>
+            <button id="copyRowBtn" class="copy-btn" disabled>Copy as Row</button>
+            <button id="copyListBtn" class="copy-btn" disabled>Copy as List</button>
+          </div>
+        </div>
+        <ul id="shotsList" class="shots-list"></ul>
+        <p id="noShotsMsg" class="no-shots" style="display: none;">No shots recorded yet.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden fallback for copying -->
   <textarea id="hiddenCopyArea"></textarea>
 
   <script>
-    /* =========================
-       SHOT TIMER LOGIC
-    ========================= */
+    /* ========== TIMER LOGIC ========== */
     let elapsedTime = 0;
     let isRunning = false;
     let startTime = null;
     let timerInterval = null;
 
+    // Shots data
     const shots = [];
     let lastShotTime = 0;
 
@@ -221,6 +254,7 @@
     const noShotsMsg = document.getElementById('noShotsMsg');
     const copyColumnBtn = document.getElementById('copyColumnBtn');
     const copyRowBtn = document.getElementById('copyRowBtn');
+    const copyListBtn = document.getElementById('copyListBtn');
     const hiddenCopyArea = document.getElementById('hiddenCopyArea');
 
     function formatTime(ms) {
@@ -244,7 +278,7 @@
 
     function startTimer() {
       if (!isRunning) {
-        // start or resume
+        // Start or resume
         startTime = Date.now() - elapsedTime;
         isRunning = true;
         startPauseBtn.textContent = 'Pause';
@@ -252,7 +286,7 @@
         nextShotBtn.disabled = false;
         timerInterval = setInterval(tick, 100);
       } else {
-        // pause
+        // Pause
         isRunning = false;
         startPauseBtn.textContent = 'Start';
         startPauseBtn.className = 'start';
@@ -270,9 +304,7 @@
     }
 
     function resetTimer() {
-      if (timerInterval) {
-        clearInterval(timerInterval);
-      }
+      if (timerInterval) clearInterval(timerInterval);
       elapsedTime = 0;
       isRunning = false;
       startTime = null;
@@ -283,25 +315,30 @@
       startPauseBtn.textContent = 'Start';
       startPauseBtn.className = 'start';
       nextShotBtn.disabled = true;
+
       updateTimerDisplay();
       renderShots();
     }
 
+    /* ========== SHOTS RENDERING ========== */
     function renderShots() {
       shotsList.innerHTML = '';
       if (shots.length === 0) {
         noShotsMsg.style.display = 'block';
         copyColumnBtn.disabled = true;
         copyRowBtn.disabled = true;
+        copyListBtn.disabled = true;
       } else {
         noShotsMsg.style.display = 'none';
         copyColumnBtn.disabled = false;
         copyRowBtn.disabled = false;
-        shots.forEach((shot, idx) => {
+        copyListBtn.disabled = false;
+
+        shots.forEach((shot, index) => {
           const li = document.createElement('li');
           li.className = 'shot-item';
           li.innerHTML = `
-            <span>Shot ${idx + 1}</span>
+            <span>Shot ${index + 1}</span>
             <span>${formatTime(shot.start)} - ${formatTime(shot.end)}</span>
           `;
           shotsList.appendChild(li);
@@ -309,23 +346,22 @@
       }
     }
 
-    // Copy logic with fallback
+    /* ========== COPY FUNCTIONS ========== */
     async function copyText(text) {
-      // Attempt modern API
+      // Try the modern API
       if (navigator.clipboard && navigator.clipboard.writeText) {
         try {
           await navigator.clipboard.writeText(text);
           return true;
         } catch (e) {
-          console.warn('navigator.clipboard.writeText failed:', e);
+          console.warn('Clipboard API failed, fallback:', e);
         }
       }
       // Fallback: hidden <textarea>
       hiddenCopyArea.value = text;
       hiddenCopyArea.select();
       hiddenCopyArea.setSelectionRange(0, text.length);
-      const ok = document.execCommand('copy');
-      return ok;
+      return document.execCommand('copy');
     }
 
     function copyAsColumn() {
@@ -333,27 +369,39 @@
       const text = lines.join('\n');
       copyText(text).then(success => {
         if (success) alert('Copied shot timings as column!');
-        else alert('Copy failed (possibly blocked).');
+        else alert('Copy failed (possibly restricted).');
       });
     }
 
     function copyAsRow() {
       const lines = shots.map(s => `${formatTime(s.start)} - ${formatTime(s.end)}`);
-      const text = lines.join('\t');
+      const text = lines.join('\t'); // tab-separated
       copyText(text).then(success => {
         if (success) alert('Copied shot timings as row!');
-        else alert('Copy failed (possibly blocked).');
+        else alert('Copy failed (possibly restricted).');
       });
     }
 
-    // Event Listeners
+    function copyAsList() {
+      // "Shot 1: 00:00 - 00:03"
+      const lines = shots.map((s, i) => `Shot ${i + 1}: ${formatTime(s.start)} - ${formatTime(s.end)}`);
+      const text = lines.join('\n');
+      copyText(text).then(success => {
+        if (success) alert('Copied shot timings as list!');
+        else alert('Copy failed (possibly restricted).');
+      });
+    }
+
+    /* ========== EVENT LISTENERS ========== */
     startPauseBtn.addEventListener('click', startTimer);
     nextShotBtn.addEventListener('click', nextShot);
     resetBtn.addEventListener('click', resetTimer);
+
     copyColumnBtn.addEventListener('click', copyAsColumn);
     copyRowBtn.addEventListener('click', copyAsRow);
+    copyListBtn.addEventListener('click', copyAsList);
 
-    // Init
+    // Initialize
     updateTimerDisplay();
     renderShots();
   </script>
