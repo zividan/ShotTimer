@@ -43,7 +43,6 @@ function updateTimerDisplay() {
   timerEl.className = 'timer ' + (isRunning ? 'running' : 'paused');
 }
 
-// Tick the timer ~10 times a second
 function tick() {
   if (startTime !== null) {
     elapsedTime = Date.now() - startTime;
@@ -172,28 +171,25 @@ function renderShots() {
       li.classList.add('highlighted');
     }
 
-    let label = `Shot ${i+1}: `;
-    // Show blank if time not set
+    // Example format: Shot 1: 00:00 - 00:02 | Some text
+    // If times are undefined, omit them entirely
+    let timeStr = '';
     if (shot.start !== undefined && shot.end !== undefined) {
-      label += `${formatTime(shot.start)} - ${formatTime(shot.end)}`;
-    } else if (shot.start === undefined && shot.end === undefined) {
-      label += ``; // blank
-    } else {
-      // partial
-      const st = (shot.start !== undefined) ? formatTime(shot.start) : '';
-      const en = (shot.end   !== undefined) ? formatTime(shot.end)   : '';
-      label += `${st}${(st && en) ? ' - ' : ''}${en}`;
-    }
+      timeStr = `${formatTime(shot.start)} - ${formatTime(shot.end)}`;
+    } else if (shot.start !== undefined && shot.end === undefined) {
+      timeStr = formatTime(shot.start);
+    } 
+    // else fully undefined => blank
 
-    const shotLabelDiv = document.createElement('div');
-    shotLabelDiv.textContent = label;
+    const shotNumber   = `Shot ${i + 1}`;
+    const shotTimes    = timeStr ? `: ${timeStr}` : '';
+    const labelContent = `${shotNumber}${shotTimes}`;
+    const textContent  = shot.text || '';
 
-    const textSpan = document.createElement('span');
-    textSpan.className = 'shot-text';
-    textSpan.textContent = shot.text || '';
+    // Single line with a '|'
+    const line = `${labelContent}${textContent ? ' | ' + textContent : ''}`;
 
-    li.appendChild(shotLabelDiv);
-    li.appendChild(textSpan);
+    li.textContent = line;
     shotsList.appendChild(li);
   });
 
@@ -203,7 +199,6 @@ function renderShots() {
     if (item) {
       const itemOffset = item.offsetTop;
       const containerHeight = shotsScroll.clientHeight;
-      // we want the shot to appear ~1/4 from top
       const desiredTop = itemOffset - containerHeight * 0.25;
       shotsScroll.scrollTo({
         top: desiredTop,
@@ -215,28 +210,20 @@ function renderShots() {
 
 /* ======= CURRENT & NEXT SHOT TEXT LINES (ROLL ANIMATION) ======= */
 function updateShotTextLines(doRoll) {
-  // We'll show the 'current' shot text in shotLineCurrent, 'next' shot text in shotLineNext
-  // If we haven't started, currentShotIndex < 0 => current is '', next is first shot if any
   let idxCur = currentShotIndex;
+  // If we haven't started => currentShotIndex is -1 => no current, next is the first shot
   if (idxCur < 0) {
-    // not started => no 'current'
     shotLineCurrent.textContent = '';
     if (shots.length > 0) {
-      // next = first shot
       shotLineNext.textContent = shots[0].text || '';
     } else {
       shotLineNext.textContent = '';
     }
   } else {
-    if (idxCur >= shots.length) idxCur = shots.length - 1; 
+    if (idxCur >= shots.length) idxCur = shots.length - 1;
     shotLineCurrent.textContent = shots[idxCur].text || '';
-    // next
     const idxN = idxCur + 1;
-    if (idxN < shots.length) {
-      shotLineNext.textContent = shots[idxN].text || '';
-    } else {
-      shotLineNext.textContent = '';
-    }
+    shotLineNext.textContent = (idxN < shots.length) ? (shots[idxN].text || '') : '';
   }
 
   if (doRoll) {
@@ -274,6 +261,9 @@ function copyAsColumn() {
     if (s.start !== undefined && s.end !== undefined) {
       return `${formatTime(s.start)} - ${formatTime(s.end)}`;
     }
+    if (s.start !== undefined) {
+      return formatTime(s.start);
+    }
     return '';
   });
   const text = lines.join('\n');
@@ -286,6 +276,9 @@ function copyAsRow() {
     if (s.start !== undefined && s.end !== undefined) {
       return `${formatTime(s.start)} - ${formatTime(s.end)}`;
     }
+    if (s.start !== undefined) {
+      return formatTime(s.start);
+    }
     return '';
   });
   const text = lines.join('\t');
@@ -295,10 +288,13 @@ function copyAsRow() {
 }
 function copyAsList() {
   const lines = shots.map((s, i) => {
+    let timeStr = '';
     if (s.start !== undefined && s.end !== undefined) {
-      return `Shot ${i+1}: ${formatTime(s.start)} - ${formatTime(s.end)}`;
+      timeStr = `${formatTime(s.start)} - ${formatTime(s.end)}`;
+    } else if (s.start !== undefined) {
+      timeStr = formatTime(s.start);
     }
-    return `Shot ${i+1}: `;
+    return `Shot ${i+1}${timeStr ? ': ' + timeStr : ''}`;
   });
   const text = lines.join('\n');
   copyText(text).then(ok => {
@@ -370,6 +366,6 @@ copyListBtn.addEventListener('click', copyAsList);
 updateTimerDisplay();
 renderShots();
 
-// By default, no current shot => show next line as first shot if any
+// By default, no “current shot,” so show first shot’s text in the “next line”
 shotLineCurrent.textContent = '';
 shotLineNext.textContent = shots.length ? (shots[0].text || '') : '';
