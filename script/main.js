@@ -81,7 +81,7 @@ function startTimer() {
 /* ===== NEXT SHOT ===== */
 function nextShot() {
   if (currentShotIndex < 0 || currentShotIndex >= shots.length) {
-    alert('No available shot to set. Paste texts or add shots first.');
+    alert('No available shot to set. Please paste texts or add shots first.');
     return;
   }
   // If current shot has no start, set it now
@@ -160,7 +160,7 @@ function renderShots() {
     const li = document.createElement('li');
     li.className = 'shot-item';
 
-    // If this is the highlighted shot
+    // highlight if it's the current shot
     if (i === currentShotIndex) {
       li.classList.add('highlighted');
     }
@@ -208,27 +208,28 @@ function renderShots() {
 
 /* ===== COPY FUNCTIONS ===== */
 async function copyText(text) {
-  hiddenCopyArea.style.display = 'block'; // fallback
+  // Attempt modern API first
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch(e) {
+      console.warn('Modern clipboard failed, fallback to hidden area', e);
+    }
+  }
+
+  // fallback method
+  hiddenCopyArea.style.display = 'block';
   hiddenCopyArea.value = text;
   hiddenCopyArea.select();
   hiddenCopyArea.setSelectionRange(0, text.length);
-
   let ok = false;
   try {
     ok = document.execCommand('copy');
   } catch(e) {
-    console.warn('Fallback copy failed:', e);
+    console.warn('Fallback copy also failed:', e);
   }
   hiddenCopyArea.style.display = 'none';
-
-  if (!ok && navigator.clipboard && navigator.clipboard.writeText) {
-    try {
-      await navigator.clipboard.writeText(text);
-      ok = true;
-    } catch(e) {
-      console.warn('Clipboard API failed:', e);
-    }
-  }
   return ok;
 }
 
@@ -244,6 +245,7 @@ function copyAsColumn() {
   const text = lines.join('\n');
   copyText(text).then(ok => alert(ok ? 'Copied as column!' : 'Copy failed.'));
 }
+
 function copyAsRow() {
   const lines = shots.map(s => {
     if (s.start !== undefined && s.end !== undefined) {
@@ -256,6 +258,7 @@ function copyAsRow() {
   const text = lines.join('\t');
   copyText(text).then(ok => alert(ok ? 'Copied as row!' : 'Copy failed.'));
 }
+
 function copyAsList() {
   const lines = shots.map((s, i) => {
     if (s.start !== undefined && s.end !== undefined) {
@@ -328,4 +331,4 @@ copyListBtn.addEventListener('click', copyAsList);
 
 // Init
 updateTimerDisplay();
-renderShots(); 
+renderShots();
