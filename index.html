@@ -1,349 +1,324 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Shot Timer</title>
-    <!-- Tailwind CSS via CDN -->
-    <link
-      href="https://cdn.jsdelivr.net/npm/tailwindcss@3.3.2/dist/tailwind.min.css"
-      rel="stylesheet"
-    />
-    <!-- React (UMD Production Build) -->
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <!-- ReactDOM (UMD Production Build) -->
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <!-- Framer Motion (UMD Build, pinned to version 10.12.0) -->
-    <script src="https://unpkg.com/framer-motion@10.12.0/dist/framer-motion.umd.js"></script>
-  </head>
-  <body class="bg-black">
-    <div id="root"></div>
+<head>
+  <meta charset="UTF-8" />
+  <title>Shot Timer (No Motion)</title>
+  <!-- Tailwind CSS via CDN -->
+  <link
+    href="https://cdn.jsdelivr.net/npm/tailwindcss@3.3.2/dist/tailwind.min.css"
+    rel="stylesheet"
+  />
+  <!-- React (UMD Production Build) -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <!-- ReactDOM (UMD Production Build) -->
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+</head>
+<body class="bg-black">
+  <div id="root"></div>
 
-    <script>
-      // Import from UMD global variables
-      const { createElement, useState, useRef, useEffect } = React;
-      const { createRoot } = ReactDOM;
-      // IMPORTANT: Use .framerMotion, not ['framer-motion'].
-      const { motion } = window.framerMotion;
+  <script>
+    // Import from UMD global variables
+    const { createElement, useState, useRef, useEffect } = React;
+    const { createRoot } = ReactDOM;
 
-      // Minimal replacements for your custom Button, Card, CardContent
-      function Button({ children, className = '', onClick, disabled }) {
-        return createElement(
-          'button',
-          {
-            disabled,
-            onClick,
-            className:
-              'rounded-md px-3 py-2 font-medium ' +
-              className +
-              (disabled ? ' opacity-50 cursor-not-allowed' : ''),
-          },
-          children
-        );
-      }
+    // Minimal replacements for your custom Button, Card, CardContent
+    function Button({ children, className = '', onClick, disabled }) {
+      return createElement(
+        'button',
+        {
+          disabled,
+          onClick,
+          className:
+            'rounded-md px-3 py-2 font-medium ' +
+            className +
+            (disabled ? ' opacity-50 cursor-not-allowed' : ''),
+        },
+        children
+      );
+    }
 
-      function Card({ children, className = '' }) {
-        return createElement(
-          'div',
-          { className: 'rounded-md shadow-md ' + className },
-          children
-        );
-      }
+    function Card({ children, className = '' }) {
+      return createElement(
+        'div',
+        { className: 'rounded-md shadow-md ' + className },
+        children
+      );
+    }
 
-      function CardContent({ children, className = '' }) {
-        return createElement('div', { className }, children);
-      }
+    function CardContent({ children, className = '' }) {
+      return createElement('div', { className }, children);
+    }
 
-      // Helper to format elapsed time as MM:SS (ignoring hours)
-      function formatTime(ms) {
-        const totalSeconds = Math.floor(ms / 1000);
-        const minutes = Math.floor(totalSeconds / 60);
-        const seconds = totalSeconds % 60;
-        return String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0');
-      }
+    // Helper to format elapsed time as MM:SS (ignoring hours)
+    function formatTime(ms) {
+      const totalSeconds = Math.floor(ms / 1000);
+      const minutes = Math.floor(totalSeconds / 60);
+      const seconds = totalSeconds % 60;
+      return String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0');
+    }
 
-      // Basic test cases for formatTime
-      function testFormatTime() {
-        console.assert(formatTime(0) === '00:00', 'Expected 00:00 for 0 ms');
-        console.assert(formatTime(59999) === '00:59', 'Expected 00:59 for 59999 ms');
-        console.assert(formatTime(60000) === '01:00', 'Expected 01:00 for 60000 ms');
-        console.assert(formatTime(3599999) === '59:59', 'Expected 59:59 for 3599999 ms');
-        console.assert(formatTime(3600000) === '60:00', 'Expected 60:00 for 3600000 ms');
-        console.log('testFormatTime passed all tests!');
-      }
-      testFormatTime(); // runs once on load
+    // Basic test cases for formatTime
+    function testFormatTime() {
+      console.assert(formatTime(0) === '00:00', 'Expected 00:00 for 0 ms');
+      console.assert(formatTime(59999) === '00:59', 'Expected 00:59 for 59999 ms');
+      console.assert(formatTime(60000) === '01:00', 'Expected 01:00 for 60000 ms');
+      console.assert(formatTime(3599999) === '59:59', 'Expected 59:59 for 3599999 ms');
+      console.assert(formatTime(3600000) === '60:00', 'Expected 60:00 for 3600000 ms');
+      console.log('testFormatTime passed all tests!');
+    }
+    testFormatTime(); // runs once on load
 
-      function StopwatchTimer() {
-        const [elapsedTime, setElapsedTime] = useState(0);
-        const [isRunning, setIsRunning] = useState(false);
-        const [startTime, setStartTime] = useState(null);
-        const [shots, setShots] = useState([]);
-        const [lastShotTime, setLastShotTime] = useState(0);
-        const timerRef = useRef(null);
+    function StopwatchTimer() {
+      const [elapsedTime, setElapsedTime] = useState(0);
+      const [isRunning, setIsRunning] = useState(false);
+      const [startTime, setStartTime] = useState(null);
+      const [shots, setShots] = useState([]);
+      const [lastShotTime, setLastShotTime] = useState(0);
 
-        // Similar to componentDidMount/update for the timer
-        useEffect(() => {
-          if (isRunning) {
-            timerRef.current = setInterval(() => {
-              if (startTime) {
-                const now = new Date();
-                setElapsedTime(now.getTime() - startTime.getTime());
-              }
-            }, 100);
-          } else if (timerRef.current) {
+      const timerRef = useRef(null);
+
+      // Similar to componentDidMount/update for the timer
+      useEffect(() => {
+        if (isRunning) {
+          timerRef.current = setInterval(() => {
+            if (startTime) {
+              const now = new Date();
+              setElapsedTime(now.getTime() - startTime.getTime());
+            }
+          }, 100);
+        } else if (timerRef.current) {
+          clearInterval(timerRef.current);
+        }
+        return () => {
+          if (timerRef.current) {
             clearInterval(timerRef.current);
           }
-          return () => {
-            if (timerRef.current) {
-              clearInterval(timerRef.current);
-            }
-          };
-        }, [isRunning, startTime]);
+        };
+      }, [isRunning, startTime]);
 
-        // Handlers
-        function handleStart() {
-          if (!isRunning) {
-            setStartTime(new Date(Date.now() - elapsedTime));
-            setIsRunning(true);
-          } else {
-            setIsRunning(false);
-          }
-        }
-
-        function handleNextShot() {
-          setShots(prev => [...prev, { start: lastShotTime, end: elapsedTime }]);
-          setLastShotTime(elapsedTime);
-        }
-
-        function handleReset() {
+      function handleStart() {
+        if (!isRunning) {
+          setStartTime(new Date(Date.now() - elapsedTime));
+          setIsRunning(true);
+        } else {
           setIsRunning(false);
-          setElapsedTime(0);
-          setShots([]);
-          setLastShotTime(0);
-          setStartTime(null);
         }
+      }
 
-        // Dynamic color classes for the timer
-        const timerColorClass = isRunning
-          ? 'text-fuchsia-300 drop-shadow-[0_0_10px_rgba(245,0,255,0.6)]'
-          : 'text-purple-300 drop-shadow-[0_0_10px_rgba(128,90,213,0.6)]';
+      function handleNextShot() {
+        setShots(prev => [...prev, { start: lastShotTime, end: elapsedTime }]);
+        setLastShotTime(elapsedTime);
+      }
 
-        // Copy helper
-        async function copyTextSafely(text, successMsg) {
-          if (navigator?.clipboard?.writeText) {
-            await navigator.clipboard.writeText(text);
-            alert(successMsg);
-          } else {
-            console.warn('Clipboard API not available.');
-            alert('Clipboard not supported in this environment.');
-          }
+      function handleReset() {
+        setIsRunning(false);
+        setElapsedTime(0);
+        setShots([]);
+        setLastShotTime(0);
+        setStartTime(null);
+      }
+
+      // Dynamic color classes for the timer
+      const timerColorClass = isRunning
+        ? 'text-fuchsia-300 drop-shadow-[0_0_10px_rgba(245,0,255,0.6)]'
+        : 'text-purple-300 drop-shadow-[0_0_10px_rgba(128,90,213,0.6)]';
+
+      // Copy helper
+      async function copyTextSafely(text, successMsg) {
+        if (navigator?.clipboard?.writeText) {
+          await navigator.clipboard.writeText(text);
+          alert(successMsg);
+        } else {
+          console.warn('Clipboard API not available.');
+          alert('Clipboard not supported in this environment.');
         }
+      }
 
-        async function copyAsColumn() {
-          try {
-            const lines = shots.map(
-              shot => formatTime(shot.start) + ' - ' + formatTime(shot.end)
-            );
-            const text = lines.join('\n');
-            await copyTextSafely(text, 'Copied shot timings as column!');
-          } catch (err) {
-            console.error('Failed to copy text: ', err);
-          }
+      async function copyAsColumn() {
+        try {
+          const lines = shots.map(
+            shot => formatTime(shot.start) + ' - ' + formatTime(shot.end)
+          );
+          const text = lines.join('\n');
+          await copyTextSafely(text, 'Copied shot timings as column!');
+        } catch (err) {
+          console.error('Failed to copy text: ', err);
         }
+      }
 
-        async function copyAsRow() {
-          try {
-            const lines = shots.map(
-              shot => formatTime(shot.start) + ' - ' + formatTime(shot.end)
-            );
-            // tab-separated so Google Sheets puts each shot in a separate column
-            const text = lines.join('\t');
-            await copyTextSafely(text, 'Copied shot timings as row!');
-          } catch (err) {
-            console.error('Failed to copy text: ', err);
-          }
+      async function copyAsRow() {
+        try {
+          const lines = shots.map(
+            shot => formatTime(shot.start) + ' - ' + formatTime(shot.end)
+          );
+          // tab-separated so Google Sheets puts each shot in a separate column
+          const text = lines.join('\t');
+          await copyTextSafely(text, 'Copied shot timings as row!');
+        } catch (err) {
+          console.error('Failed to copy text: ', err);
         }
+      }
 
-        // Build the JSX in createElement form
-        return createElement(
-          motion.div,
+      // Build the UI with createElement
+      return createElement(
+        'div',
+        {
+          className:
+            'relative min-h-screen bg-gradient-to-r from-black via-gray-900 to-gray-800 p-8 flex flex-col items-center text-white',
+        },
+        // Title
+        createElement(
+          'h1',
           {
             className:
-              'relative min-h-screen bg-gradient-to-r from-black via-gray-900 to-gray-800 p-8 flex flex-col items-center text-white',
-            initial: { opacity: 0, y: 20 },
-            animate: { opacity: 1, y: 0 },
-            transition: { duration: 0.6 },
+              'text-5xl font-extrabold mb-8 text-center tracking-wide drop-shadow-[0_0_10px_rgba(255,255,255,0.8)]',
           },
-          // Pulsating background effect
-          createElement(motion.div, {
+          'Shot Timer (No Motion)'
+        ),
+        // Timer Display
+        createElement(
+          Card,
+          {
             className:
-              'absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 blur-3xl opacity-30 animate-pulse',
-            initial: { scale: 0.6, opacity: 0 },
-            animate: { scale: 1, opacity: 0.4 },
-            transition: { duration: 1.2, repeat: Infinity, repeatType: 'reverse' },
-          }),
+              'border border-gray-700 rounded-2xl shadow-2xl mb-6 bg-opacity-40 backdrop-blur-md',
+          },
           createElement(
-            'div',
-            { className: 'w-full max-w-md z-10' },
-            // Title
+            CardContent,
+            { className: 'flex flex-col items-center gap-8 py-12' },
             createElement(
-              motion.h1,
+              'div',
               {
                 className:
-                  'text-5xl font-extrabold mb-8 text-center tracking-wide drop-shadow-[0_0_10px_rgba(255,255,255,0.8)]',
-                initial: { opacity: 0, y: -20 },
-                animate: { opacity: 1, y: 0 },
-                transition: { duration: 0.6 },
+                  'text-7xl font-mono transition-colors duration-300 ' +
+                  timerColorClass,
               },
-              'Shot Timer'
+              formatTime(elapsedTime)
             ),
-            // Timer Display
             createElement(
-              Card,
-              {
-                className:
-                  'border border-gray-700 rounded-2xl shadow-2xl mb-6 bg-opacity-40 backdrop-blur-md',
-              },
+              'div',
+              { className: 'flex gap-4' },
               createElement(
-                CardContent,
-                { className: 'flex flex-col items-center gap-8 py-12' },
-                createElement(
-                  motion.div,
-                  {
-                    className:
-                      'text-7xl font-mono transition-colors duration-300 ' +
-                      timerColorClass,
-                    initial: { scale: 0.8, opacity: 0 },
-                    animate: { scale: 1, opacity: 1 },
-                    transition: { duration: 0.5 },
-                  },
-                  formatTime(elapsedTime)
-                ),
+                Button,
+                {
+                  onClick: handleStart,
+                  className:
+                    (isRunning
+                      ? 'bg-red-500 hover:bg-red-600'
+                      : 'bg-green-500 hover:bg-green-600') +
+                    ' text-white font-semibold px-6 py-3 rounded-full shadow-md transition-colors text-lg',
+                },
+                isRunning ? 'Pause' : 'Start'
+              ),
+              createElement(
+                Button,
+                {
+                  onClick: handleNextShot,
+                  disabled: !isRunning,
+                  className:
+                    (isRunning
+                      ? 'bg-blue-500 hover:bg-blue-600'
+                      : 'bg-gray-600 text-gray-300 cursor-not-allowed') +
+                    ' font-semibold px-6 py-3 rounded-full shadow-md transition-colors text-lg',
+                },
+                'Next Shot'
+              ),
+              createElement(
+                Button,
+                {
+                  onClick: handleReset,
+                  className:
+                    'bg-gray-700 hover:bg-gray-600 text-white font-semibold px-6 py-3 rounded-full shadow-md transition-colors text-lg',
+                },
+                'Reset'
+              )
+            )
+          )
+        ),
+        // Shots List
+        createElement(
+          Card,
+          {
+            className:
+              'border border-gray-700 rounded-2xl shadow-2xl bg-opacity-40 backdrop-blur-md',
+          },
+          createElement(
+            CardContent,
+            null,
+            // Title + Centered Buttons
+            createElement(
+              'div',
+              { className: 'flex flex-col items-center text-center mb-6' },
+              createElement(
+                'h2',
+                { className: 'text-2xl font-semibold text-white mb-4' },
+                'Shots'
+              ),
+              createElement(
+                Card,
+                { className: 'bg-black bg-opacity-40 py-3 px-6 rounded-xl' },
                 createElement(
                   'div',
-                  { className: 'flex gap-4' },
+                  { className: 'flex gap-2 justify-center' },
                   createElement(
                     Button,
                     {
-                      onClick: handleStart,
+                      onClick: copyAsColumn,
                       className:
-                        (isRunning
-                          ? 'bg-red-500 hover:bg-red-600'
-                          : 'bg-green-500 hover:bg-green-600') +
-                        ' text-white font-semibold px-6 py-3 rounded-full shadow-md transition-colors text-lg',
+                        'bg-purple-600 hover:bg-purple-700 text-white font-semibold px-4 py-2 rounded-full shadow-md transition-colors text-sm',
+                      disabled: shots.length === 0,
                     },
-                    isRunning ? 'Pause' : 'Start'
+                    'Copy as Column'
                   ),
                   createElement(
                     Button,
                     {
-                      onClick: handleNextShot,
-                      disabled: !isRunning,
+                      onClick: copyAsRow,
                       className:
-                        (isRunning
-                          ? 'bg-blue-500 hover:bg-blue-600'
-                          : 'bg-gray-600 text-gray-300 cursor-not-allowed') +
-                        ' font-semibold px-6 py-3 rounded-full shadow-md transition-colors text-lg',
+                        'bg-purple-600 hover:bg-purple-700 text-white font-semibold px-4 py-2 rounded-full shadow-md transition-colors text-sm',
+                      disabled: shots.length === 0,
                     },
-                    'Next Shot'
-                  ),
-                  createElement(
-                    Button,
-                    {
-                      onClick: handleReset,
-                      className:
-                        'bg-gray-700 hover:bg-gray-600 text-white font-semibold px-6 py-3 rounded-full shadow-md transition-colors text-lg',
-                    },
-                    'Reset'
+                    'Copy as Row'
                   )
                 )
               )
             ),
-            // Shots List
-            createElement(
-              Card,
-              {
-                className:
-                  'border border-gray-700 rounded-2xl shadow-2xl bg-opacity-40 backdrop-blur-md',
-              },
-              createElement(
-                CardContent,
-                null,
-                // Title + Centered Buttons
-                createElement(
-                  'div',
-                  { className: 'flex flex-col items-center text-center mb-6' },
-                  createElement(
-                    'h2',
-                    { className: 'text-2xl font-semibold text-white mb-4' },
-                    'Shots'
-                  ),
-                  createElement(
-                    Card,
-                    { className: 'bg-black bg-opacity-40 py-3 px-6 rounded-xl' },
+            shots.length === 0
+              ? createElement(
+                  'p',
+                  { className: 'text-gray-300' },
+                  'No shots recorded yet.'
+                )
+              : createElement(
+                  'ul',
+                  { className: 'flex flex-col gap-4' },
+                  shots.map((shot, index) =>
                     createElement(
-                      'div',
-                      { className: 'flex gap-2 justify-center' },
+                      'li',
+                      {
+                        key: index,
+                        className:
+                          'bg-gray-800 bg-opacity-60 p-4 rounded-xl flex items-center justify-between shadow-md',
+                      },
                       createElement(
-                        Button,
-                        {
-                          onClick: copyAsColumn,
-                          className:
-                            'bg-purple-600 hover:bg-purple-700 text-white font-semibold px-4 py-2 rounded-full shadow-md transition-colors text-sm',
-                          disabled: shots.length === 0,
-                        },
-                        'Copy as Column'
+                        'span',
+                        { className: 'font-bold' },
+                        'Shot ' + (index + 1)
                       ),
                       createElement(
-                        Button,
-                        {
-                          onClick: copyAsRow,
-                          className:
-                            'bg-purple-600 hover:bg-purple-700 text-white font-semibold px-4 py-2 rounded-full shadow-md transition-colors text-sm',
-                          disabled: shots.length === 0,
-                        },
-                        'Copy as Row'
+                        'span',
+                        { className: 'tracking-wide' },
+                        formatTime(shot.start) + ' - ' + formatTime(shot.end)
                       )
                     )
                   )
-                ),
-                shots.length === 0
-                  ? createElement(
-                      'p',
-                      { className: 'text-gray-300' },
-                      'No shots recorded yet.'
-                    )
-                  : createElement(
-                      'ul',
-                      { className: 'flex flex-col gap-4' },
-                      shots.map((shot, index) =>
-                        createElement(
-                          'li',
-                          {
-                            key: index,
-                            className:
-                              'bg-gray-800 bg-opacity-60 p-4 rounded-xl flex items-center justify-between shadow-md',
-                          },
-                          createElement(
-                            'span',
-                            { className: 'font-bold' },
-                            'Shot ' + (index + 1)
-                          ),
-                          createElement(
-                            'span',
-                            { className: 'tracking-wide' },
-                            formatTime(shot.start) + ' - ' + formatTime(shot.end)
-                          )
-                        )
-                      )
-                    )
-              )
-            )
+                )
           )
-        );
-      }
+        )
+      );
+    }
 
-      // Render in #root
-      createRoot(document.getElementById('root')).render(createElement(StopwatchTimer));
-    </script>
-  </body>
+    // Render in #root
+    createRoot(document.getElementById('root')).render(createElement(StopwatchTimer));
+  </script>
+</body>
 </html>
