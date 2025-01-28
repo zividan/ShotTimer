@@ -22,7 +22,9 @@ const noShotsMsg      = document.getElementById('noShotsMsg');
 const pasteTextsBtn   = document.getElementById('pasteTextsBtn');
 const copyColumnBtn   = document.getElementById('copyColumnBtn');
 const copyRowBtn      = document.getElementById('copyRowBtn');
-const copyListBtn     = document.getElementById('copyListBtn');
+// 1) Renamed from “copyListBtn” to “copyAudioBtn”
+const copyAudioBtn    = document.getElementById('copyAudioBtn');
+
 const hiddenCopyArea  = document.getElementById('hiddenCopyArea');
 
 /* ====== HELPER: format mm:ss ====== */
@@ -94,13 +96,29 @@ function nextShot() {
   // Move to next shot
   const nextIndex = currentShotIndex + 1;
   if (nextIndex >= shots.length) {
+    // 2) No more shots => also stop the counter
     alert('No more shots to highlight – all recorded!');
+    stopCounter();
   } else {
     currentShotIndex = nextIndex;
     if (shots[currentShotIndex].start === undefined) {
       shots[currentShotIndex].start = elapsedTime;
     }
+    renderShots();
   }
+}
+
+/* Helper to stop the timer */
+function stopCounter() {
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
+  isRunning = false;
+  startPauseBtn.textContent = 'Start';
+  startPauseBtn.className = 'start';
+  nextShotBtn.disabled = true;
+  updateTimerDisplay();
   renderShots();
 }
 
@@ -148,19 +166,18 @@ function renderShots() {
     noShotsMsg.style.display = 'block';
     copyColumnBtn.disabled = true;
     copyRowBtn.disabled = true;
-    copyListBtn.disabled = true;
+    copyAudioBtn.disabled = true;
     return;
   }
   noShotsMsg.style.display = 'none';
   copyColumnBtn.disabled = false;
   copyRowBtn.disabled = false;
-  copyListBtn.disabled = false;
+  copyAudioBtn.disabled = false;
 
   shots.forEach((shot, i) => {
     const li = document.createElement('li');
     li.className = 'shot-item';
 
-    // highlight if it's the current shot
     if (i === currentShotIndex) {
       li.classList.add('highlighted');
     }
@@ -172,7 +189,6 @@ function renderShots() {
 
     const divTime = document.createElement('div');
     divTime.className = 'shot-time';
-    // Show time if set
     let timeStr = '';
     if (shot.start !== undefined && shot.end !== undefined) {
       timeStr = `${formatTime(shot.start)} - ${formatTime(shot.end)}`;
@@ -218,7 +234,7 @@ async function copyText(text) {
     }
   }
 
-  // fallback method
+  // fallback
   hiddenCopyArea.style.display = 'block';
   hiddenCopyArea.value = text;
   hiddenCopyArea.select();
@@ -259,17 +275,24 @@ function copyAsRow() {
   copyText(text).then(ok => alert(ok ? 'Copied as row!' : 'Copy failed.'));
 }
 
-function copyAsList() {
-  const lines = shots.map((s, i) => {
+/* 1) 'Copy for Audio' => tab separated: timing in col A, text in col B */
+function copyAudio() {
+  // For each shot => "timing\ttext"
+  // timing => "start - end" or just "start"
+  const lines = shots.map(s => {
+    let timing = '';
     if (s.start !== undefined && s.end !== undefined) {
-      return `Shot ${i+1}: ${formatTime(s.start)} - ${formatTime(s.end)}`;
+      timing = `${formatTime(s.start)} - ${formatTime(s.end)}`;
     } else if (s.start !== undefined) {
-      return `Shot ${i+1}: ${formatTime(s.start)}`;
+      timing = formatTime(s.start);
     }
-    return `Shot ${i+1}:`;
+    const txt = s.text || '';
+    return `${timing}\t${txt}`;
   });
-  const text = lines.join('\n');
-  copyText(text).then(ok => alert(ok ? 'Copied as list!' : 'Copy failed.'));
+  const finalText = lines.join('\n');
+  copyText(finalText).then(ok => {
+    alert(ok ? 'Copied for audio!' : 'Copy failed.');
+  });
 }
 
 /* ===== PASTE TEXTS ===== */
@@ -320,14 +343,14 @@ async function pasteTexts() {
 /* ===== EVENT HANDLERS ===== */
 startPauseBtn.addEventListener('click', startTimer);
 nextShotBtn.addEventListener('click', nextShot);
-
 resetTimesBtn.addEventListener('click', resetTimes);
 resetAllBtn.addEventListener('click', resetAll);
 
 pasteTextsBtn.addEventListener('click', pasteTexts);
 copyColumnBtn.addEventListener('click', copyAsColumn);
 copyRowBtn.addEventListener('click', copyAsRow);
-copyListBtn.addEventListener('click', copyAsList);
+// 1) We use "copyAudio" here
+copyAudioBtn.addEventListener('click', copyAudio);
 
 // Init
 updateTimerDisplay();
